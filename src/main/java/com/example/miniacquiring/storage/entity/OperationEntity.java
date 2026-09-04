@@ -1,12 +1,17 @@
 package com.example.miniacquiring.storage.entity;
 
+import com.example.miniacquiring.core.constant.Const;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 
+@Getter
 @Entity
-@Table(name = "operation", schema = "core")
+@Table(name = "operation", schema = Const.CORE_SCHEMA)
 public class OperationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,31 +19,28 @@ public class OperationEntity {
 
     @ManyToOne
     @JoinColumn(name = "merchant_id", nullable = false)
-    private MerchantEntity merchant; //Связанный мерчант
+    private MerchantEntity merchant;
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
-    private OperationStatusEntity status; //Статус операции
+    private OperationStatusEntity status;
 
     @Column(nullable = false)
-    private BigDecimal sum; //Сумма по операции
+    private BigDecimal sum;
 
     @ManyToOne
     @JoinColumn(name = "operation_type_id", nullable = false)
-    private OperationTypeEntity type; // Тип операции
+    private OperationTypeEntity type;
 
     @Column(name = "parent_id")
     private Long parentId;
 
     @Column(nullable = false, name = "created_at")
-    private Date createdAt; // Дата создания
+    private LocalDateTime createdAt;
 
+    @Setter
     @Column(name = "processed_at")
-    private Date processedAt; // Дата проведения
+    private LocalDateTime processedAt;
 
-    // тип (оплата и возврат) +
-    // parentId для ссылки на прошлую операцию для операций возврата +
-    // dbSchema +
-    // sql и файл dbSChema +-
-    // залить на git
 }

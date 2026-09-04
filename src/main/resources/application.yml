@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: mini-acquiring
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mini_acquiring
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
