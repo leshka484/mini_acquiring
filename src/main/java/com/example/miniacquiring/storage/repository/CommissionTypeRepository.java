@@ -1,10 +1,18 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface CommissionTypeRepository extends JpaRepository<CommissionTypeEntity, Long> {
-    Optional<CommissionTypeEntity> findByType(String type);
+
+    @Query("""
+                SELECT CTE
+                FROM CommissionTypeEntity CTE
+                WHERE CTE.type = :type
+            """)
+    Optional<CommissionTypeEntity> findByType(@Param("type") String type);
+
 }
