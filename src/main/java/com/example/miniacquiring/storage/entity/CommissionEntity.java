@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Builder
 @Getter
@@ -29,11 +28,9 @@ public class CommissionEntity {
     @JoinColumn(name = "operation_id", nullable = false, unique = true)
     private OperationEntity operation;
 
-    @Setter
     @Column(nullable = false, name = "total_commission")
     private BigDecimal totalCommission;
 
-    @Setter
     @Column(nullable = false, name = "processed_at")
     private LocalDateTime processedAt;
 

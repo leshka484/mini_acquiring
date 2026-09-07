@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Builder
 @Getter
@@ -29,7 +28,6 @@ public class OperationEntity {
     @JoinColumn(name = "merchant_id", nullable = false)
     private MerchantEntity merchant;
 
-    @Setter
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
     private OperationStatusEntity status;
@@ -47,7 +45,6 @@ public class OperationEntity {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @Setter
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 

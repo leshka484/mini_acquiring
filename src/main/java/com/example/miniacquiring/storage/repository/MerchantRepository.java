@@ -5,22 +5,21 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> {
 
     @Query("""
-                SELECT ME
-                FROM MerchantEntity ME
-                WHERE ME.name = :name
+                SELECT me
+                FROM MerchantEntity me
+                WHERE me.name = :name
             """)
-    Optional<MerchantEntity> findByName(@Param("name") String name);
+    Optional<MerchantEntity> findByName(String name);
 
     @Modifying
     @Query("""
-                DELETE FROM MerchantEntity ME
-                WHERE ME.name = :name
+                DELETE FROM MerchantEntity me
+                WHERE me.name = :name
             """)
-    void deleteByName(@Param("name") String name);
+    void deleteByName(String name);
 
 }

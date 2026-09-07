@@ -4,15 +4,14 @@ import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface OperationStatusRepository extends JpaRepository<OperationStatusEntity, Long> {
 
     @Query("""
-                SELECT OSE
-                FROM OperationStatusEntity OSE
-                WHERE OSE.status = :status
+                SELECT ose
+                FROM OperationStatusEntity ose
+                WHERE ose.status = :status
             """)
-    Optional<OperationStatusEntity> findByStatus(@Param("status") String status);
+    Optional<OperationStatusEntity> findByStatus(String status);
 
 }

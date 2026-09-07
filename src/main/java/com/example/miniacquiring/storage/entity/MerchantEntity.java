@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Builder
 @Getter
@@ -24,15 +23,12 @@ public class MerchantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Setter
     @Column(nullable = false, name = "commission_value")
     private BigDecimal commissionValue;
 
-    @Setter
     @ManyToOne
     @JoinColumn(name = "commission_type", nullable = false)
     private CommissionTypeEntity commissionType;

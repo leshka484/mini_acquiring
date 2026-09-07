@@ -6,64 +6,63 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.merchant.id = :merchantId
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.merchant.id = :merchantId
             """)
-    List<OperationEntity> findByMerchant(@Param("merchantId") Long merchantId);
+    List<OperationEntity> findByMerchant(Long merchantId);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.status.id = status
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.status.id = status
             """)
-    List<OperationEntity> findByStatus(@Param("status") Long status);
+    List<OperationEntity> findByStatus(Long status);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.type.id = type
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.type.id = type
             """)
-    List<OperationEntity> findByType(@Param("type") Long type);
+    List<OperationEntity> findByType(Long type);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.createdAt = :date
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.createdAt = :date
             """)
-    List<OperationEntity> findByCreatedAt(@Param("date") LocalDateTime date);
+    List<OperationEntity> findByCreatedAt(LocalDateTime date);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.createdAt BETWEEN :from AND :to
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.createdAt BETWEEN :from AND :to
             """)
-    List<OperationEntity> findByCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<OperationEntity> findByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.processedAt = :processedAt
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.processedAt = :processedAt
             """)
-    List<OperationEntity> findByProcessedAt(@Param("processedAt") LocalDateTime processedAt);
+    List<OperationEntity> findByProcessedAt(LocalDateTime processedAt);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.processedAt BETWEEN :from AND :to
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.processedAt BETWEEN :from AND :to
             """)
-    List<OperationEntity> findByProcessedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<OperationEntity> findByProcessedAtBetween(LocalDateTime from, LocalDateTime to);
 
     @Query("""
-                SELECT OE
-                FROM OperationEntity OE
-                WHERE OE.parentId = :parentId
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.parentId = :parentId
             """)
-    Optional<OperationEntity> findByParentId(@Param("parentId") Long parentId);
+    Optional<OperationEntity> findByParentId(Long parentId);
 
 }
