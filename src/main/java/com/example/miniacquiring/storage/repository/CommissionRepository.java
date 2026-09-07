@@ -1,6 +1,7 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.CommissionEntity;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,4 +31,33 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             """)
     List<CommissionEntity> findByProcessedAtBetween(LocalDateTime from, LocalDateTime to);
 
+    @Query("""
+                SELECT count ce
+                FROM CommissionEntity ce
+                WHERE ce.merchant.id = :merchantId
+            """)
+    Long countMerchantCommissions(Long merchantId);
+
+    @Query("""
+            SELECT COALESCE(SUM(sum), 0)
+            FROM CommissionEntity ce
+            WHERE ce.merchant.id = :merchantId
+            """)
+    BigDecimal sumMerchantCommissions(Long id);
+
+    @Query("""
+                SELECT count ce
+                FROM CommissionEntity ce
+                WHERE ce.merchant.id = :merchantId
+                AND ce.processedAt BETWEEN :from AND :to
+            """)
+    Long countMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+
+    @Query("""
+            SELECT COALESCE(SUM(sum), 0)
+            FROM CommissionEntity ce
+            WHERE ce.merchant.id = :merchantId
+            AND ce.processedAt BETWEEN :from AND :to
+            """)
+    BigDecimal sumMerchantCommissionsBetween(Long id, LocalDateTime from, LocalDateTime to);
 }

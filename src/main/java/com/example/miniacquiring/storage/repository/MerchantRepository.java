@@ -15,6 +15,13 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
             """)
     Optional<MerchantEntity> findByName(String name);
 
+    @Query("""
+                SELECT CASE WHEN COUNT(me) > 0 THEN true ELSE false END
+                FROM MerchantEntity me
+                WHERE me.name = :name
+            """)
+    Boolean existsByName(String name);
+
     @Modifying
     @Query("""
                 DELETE FROM MerchantEntity me
