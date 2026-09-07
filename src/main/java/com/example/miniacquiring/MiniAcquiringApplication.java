@@ -9,4 +9,5 @@ public class MiniAcquiringApplication {
     public static void main(String[] args) {
         SpringApplication.run(MiniAcquiringApplication.class, args);
     }
+
 }
