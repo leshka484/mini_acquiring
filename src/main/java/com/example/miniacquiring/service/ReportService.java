@@ -16,6 +16,24 @@ public class ReportService {
     private final OperationRepository operationRepository;
     private final CommissionRepository commissionRepository;
 
+    public MerchantReport getMerchantFullReport(Long merchantId) {
+        var merchant = merchantStorage.getById(merchantId);
+        Long operationsCount = operationRepository.countMerchantOperations(merchantId);
+        Long commissionsCount = commissionRepository.countMerchantCommissions(merchantId);
+        BigDecimal sumOperations = operationRepository.sumMerchantOperations(merchantId);
+        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissions(merchantId);
+        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
+    }
+
+    public MerchantReport getMerchantReportByTime(Long merchantId, LocalDateTime from, LocalDateTime to) {
+        var merchant = merchantStorage.getById(merchantId);
+        Long operationsCount = operationRepository.countMerchantOperationsBetween(merchantId, from, to);
+        Long commissionsCount = commissionRepository.countMerchantCommissionsBetween(merchantId, from, to);
+        BigDecimal sumOperations = operationRepository.sumMerchantOperationsBetween(merchantId, from, to);
+        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissionsBetween(merchantId, from, to);
+        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
+    }
+
     private MerchantReport buildReport(
             MerchantEntity merchant,
             Long operationsCount,
@@ -32,23 +50,4 @@ public class ReportService {
                 .sumCommissions(sumCommissions)
                 .build();
     }
-
-    public MerchantReport getMerchantFullReport(Long merchantId) {
-        MerchantEntity merchant = merchantStorage.getById(merchantId);
-        Long operationsCount = operationRepository.countMerchantOperations(merchantId);
-        Long commissionsCount = commissionRepository.countMerchantCommissions(merchantId);
-        BigDecimal sumOperations = operationRepository.sumMerchantOperations(merchantId);
-        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissions(merchantId);
-        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
-    }
-
-    public MerchantReport getMerchantReportByTime(Long merchantId, LocalDateTime from, LocalDateTime to) {
-        MerchantEntity merchant = merchantStorage.getById(merchantId);
-        Long operationsCount = operationRepository.countMerchantOperationsBetween(merchantId, from, to);
-        Long commissionsCount = commissionRepository.countMerchantCommissionsBetween(merchantId, from, to);
-        BigDecimal sumOperations = operationRepository.sumMerchantOperationsBetween(merchantId, from, to);
-        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissionsBetween(merchantId, from, to);
-        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
-    }
-
 }

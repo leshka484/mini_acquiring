@@ -39,4 +39,8 @@ public class MerchantStorage {
         merchantRepository.deleteByName(name);
     }
 
+    public MerchantEntity save(MerchantEntity merchant) {
+        return merchantRepository.save(merchant);
+    }
+
 }
