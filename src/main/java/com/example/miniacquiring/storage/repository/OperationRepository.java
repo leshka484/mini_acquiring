@@ -95,4 +95,5 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
                 AND oe.createdAt BETWEEN :from AND :to
             """)
     BigDecimal sumMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+
 }

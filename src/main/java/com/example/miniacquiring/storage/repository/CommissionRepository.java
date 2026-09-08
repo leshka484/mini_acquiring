@@ -60,4 +60,5 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             AND ce.processedAt BETWEEN :from AND :to
             """)
     BigDecimal sumMerchantCommissionsBetween(Long id, LocalDateTime from, LocalDateTime to);
+
 }
