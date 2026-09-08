@@ -2,15 +2,15 @@ package com.example.miniacquiring.storage;
 
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.repository.CommissionTypeRepository;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class CommissionTypeStorage {
+public class CommissionTypeStorage extends BaseStorage<CommissionTypeEntity, Long, CommissionTypeRepository> {
 
-    private final CommissionTypeRepository commissionTypeRepository;
+    public CommissionTypeStorage(CommissionTypeRepository commissionTypeRepository) {
+        super(commissionTypeRepository);
+    }
 
     public CommissionTypeEntity findByType(String type) {
-        return commissionTypeRepository.findByType(type).orElseThrow(
+        return repository.findByType(type).orElseThrow(
                 () -> new IllegalArgumentException("Commission type not found")
         );
     }

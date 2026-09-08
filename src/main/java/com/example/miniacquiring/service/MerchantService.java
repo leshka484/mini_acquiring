@@ -5,6 +5,7 @@ import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,14 +42,9 @@ public class MerchantService {
         }
     }
 
-    public void deleteById(Long id) {
-        merchantStorage.deleteById(id);
-        log.info("Merchant with id = {} deleted", id);
-    }
-
-    public void deleteByName(String name) {
-        merchantStorage.deleteByName(name);
-        log.info("Merchant {} deleted", name);
+    public void deleteById(List<Long> ids) {
+        merchantStorage.deleteById(ids, "Some merchants do not exist");
+        log.info("Merchants deleted");
     }
 
     private MerchantEntity buildMerchantEntity(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {

@@ -1,10 +1,10 @@
 package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.dto.MerchantReport;
+import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
+import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
-import com.example.miniacquiring.storage.repository.CommissionRepository;
-import com.example.miniacquiring.storage.repository.OperationRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -13,24 +13,24 @@ import lombok.RequiredArgsConstructor;
 public class ReportService {
 
     private final MerchantStorage merchantStorage;
-    private final OperationRepository operationRepository;
-    private final CommissionRepository commissionRepository;
+    private final OperationStorage operationStorage;
+    private final CommissionStorage commissionStorage;
 
     public MerchantReport getMerchantFullReport(Long merchantId) {
         var merchant = merchantStorage.getById(merchantId);
-        Long operationsCount = operationRepository.countMerchantOperations(merchantId);
-        Long commissionsCount = commissionRepository.countMerchantCommissions(merchantId);
-        BigDecimal sumOperations = operationRepository.sumMerchantOperations(merchantId);
-        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissions(merchantId);
+        Long operationsCount = operationStorage.countMerchantOperations(merchantId);
+        Long commissionsCount = commissionStorage.countMerchantCommissions(merchantId);
+        BigDecimal sumOperations = operationStorage.sumMerchantOperations(merchantId);
+        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissions(merchantId);
         return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
     }
 
     public MerchantReport getMerchantReportByTime(Long merchantId, LocalDateTime from, LocalDateTime to) {
         var merchant = merchantStorage.getById(merchantId);
-        Long operationsCount = operationRepository.countMerchantOperationsBetween(merchantId, from, to);
-        Long commissionsCount = commissionRepository.countMerchantCommissionsBetween(merchantId, from, to);
-        BigDecimal sumOperations = operationRepository.sumMerchantOperationsBetween(merchantId, from, to);
-        BigDecimal sumCommissions = commissionRepository.sumMerchantCommissionsBetween(merchantId, from, to);
+        Long operationsCount = operationStorage.countMerchantOperationsBetween(merchantId, from, to);
+        Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(merchantId, from, to);
+        BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(merchantId, from, to);
+        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissionsBetween(merchantId, from, to);
         return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
     }
 
@@ -50,4 +50,5 @@ public class ReportService {
                 .sumCommissions(sumCommissions)
                 .build();
     }
+
 }
