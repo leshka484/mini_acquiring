@@ -16,8 +16,8 @@ public class MerchantService {
     private final CommissionTypeStorage commissionTypeStorage;
 
     public MerchantEntity create(String name, BigDecimal commissionValue, String commissionType) {
-        CommissionTypeEntity type = commissionTypeStorage.findByType(commissionType);
-        var merchant = build(name, commissionValue, type);
+        var type = commissionTypeStorage.findByType(commissionType);
+        var merchant = buildMerchantEntity(name, commissionValue, type);
         log.info("Merchant {} created", merchant.getName());
         return merchantStorage.save(merchant);
     }
@@ -36,7 +36,7 @@ public class MerchantService {
 
     public void update(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
         if (merchantStorage.existsById(id)) {
-            var merchant = build(id, name, commissionValue, commissionType);
+            var merchant = buildMerchantEntity(id, name, commissionValue, commissionType);
             log.info("Merchant {} updated", merchant.getName());
         }
     }
@@ -51,7 +51,7 @@ public class MerchantService {
         log.info("Merchant {} deleted", name);
     }
 
-    private MerchantEntity build(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
+    private MerchantEntity buildMerchantEntity(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
         var merchant = MerchantEntity
                 .builder()
                 .id(id)
@@ -62,7 +62,7 @@ public class MerchantService {
         return merchantStorage.save(merchant);
     }
 
-    private MerchantEntity build(String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
+    private MerchantEntity buildMerchantEntity(String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
         var merchant = MerchantEntity
                 .builder()
                 .name(name)
