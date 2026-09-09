@@ -1,13 +1,13 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.OperationEntity;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
+public interface OperationRepository extends BaseRepository<OperationEntity, Long> {
 
     @Query("""
                 SELECT oe
@@ -64,5 +64,35 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
                 WHERE oe.parentId = :parentId
             """)
     Optional<OperationEntity> findByParentId(Long parentId);
+
+    @Query("""
+                SELECT COUNT(oe)
+                FROM OperationEntity oe
+                WHERE oe.merchant.id = :merchantId
+            """)
+    Long countMerchantOperations(Long merchantId);
+
+    @Query("""
+                SELECT COALESCE(SUM(sum), 0)
+                FROM OperationEntity oe
+                WHERE oe.merchant.id = :merchantId
+            """)
+    BigDecimal sumMerchantOperations(Long id);
+
+    @Query("""
+                SELECT COUNT(oe)
+                FROM OperationEntity oe
+                WHERE oe.merchant.id = :merchantId
+                AND oe.createdAt BETWEEN :from AND :to
+            """)
+    Long countMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+
+    @Query("""
+                SELECT COALESCE(SUM(sum), 0)
+                FROM OperationEntity oe
+                WHERE oe.merchant.id = :merchantId
+                AND oe.createdAt BETWEEN :from AND :to
+            """)
+    BigDecimal sumMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
 
 }

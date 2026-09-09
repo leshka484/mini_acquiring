@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface OperationTypeRepository extends JpaRepository<OperationTypeEntity, Long> {
+public interface OperationTypeRepository extends BaseRepository<OperationTypeEntity, Long> {
 
     @Query("""
                 SELECT ote

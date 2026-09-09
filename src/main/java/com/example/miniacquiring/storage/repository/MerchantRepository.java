@@ -2,11 +2,9 @@ package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> {
+public interface MerchantRepository extends BaseRepository<MerchantEntity, Long> {
 
     @Query("""
                 SELECT me
@@ -15,11 +13,11 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
             """)
     Optional<MerchantEntity> findByName(String name);
 
-    @Modifying
     @Query("""
-                DELETE FROM MerchantEntity me
+                SELECT CASE WHEN COUNT(me) > 0 THEN true ELSE false END
+                FROM MerchantEntity me
                 WHERE me.name = :name
             """)
-    void deleteByName(String name);
+    boolean existsByName(String name);
 
 }
