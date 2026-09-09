@@ -9,10 +9,6 @@ public class MerchantStorage extends BaseStorage<MerchantEntity, Long, MerchantR
         super(merchantRepository);
     }
 
-    public Boolean existsById(Long id) {
-        return repository.existsById(id);
-    }
-
     public MerchantEntity getById(Long id) {
         return repository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("Merchant with id = %d does not exist".formatted(id))
@@ -25,8 +21,8 @@ public class MerchantStorage extends BaseStorage<MerchantEntity, Long, MerchantR
         );
     }
 
-    public MerchantEntity save(MerchantEntity merchant) {
-        return repository.save(merchant);
+    public void save(MerchantEntity merchant) {
+        repository.save(merchant);
     }
 
 }

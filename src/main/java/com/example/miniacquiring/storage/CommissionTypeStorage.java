@@ -15,4 +15,10 @@ public class CommissionTypeStorage extends BaseStorage<CommissionTypeEntity, Lon
         );
     }
 
+    public CommissionTypeEntity findById(Long id) {
+        return repository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("Commission type not found")
+        );
+    }
+
 }

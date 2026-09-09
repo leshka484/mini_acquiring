@@ -1,4 +1,4 @@
-package com.example.miniacquiring.core.dto;
+package com.example.miniacquiring.core.dto.reports;
 
 import java.math.BigDecimal;
 import lombok.Builder;

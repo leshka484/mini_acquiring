@@ -1,6 +1,6 @@
 package com.example.miniacquiring.service;
 
-import com.example.miniacquiring.core.dto.MerchantReport;
+import com.example.miniacquiring.core.dto.reports.MerchantReport;
 import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
@@ -22,7 +22,7 @@ public class ReportService {
         Long commissionsCount = commissionStorage.countMerchantCommissions(merchantId);
         BigDecimal sumOperations = operationStorage.sumMerchantOperations(merchantId);
         BigDecimal sumCommissions = commissionStorage.sumMerchantCommissions(merchantId);
-        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
+        return buildMerchantReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
     }
 
     public MerchantReport getMerchantReportByTime(Long merchantId, LocalDateTime from, LocalDateTime to) {
@@ -31,10 +31,10 @@ public class ReportService {
         Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(merchantId, from, to);
         BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(merchantId, from, to);
         BigDecimal sumCommissions = commissionStorage.sumMerchantCommissionsBetween(merchantId, from, to);
-        return buildReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
+        return buildMerchantReport(merchant, operationsCount, sumOperations, commissionsCount, sumCommissions);
     }
 
-    private MerchantReport buildReport(
+    private MerchantReport buildMerchantReport(
             MerchantEntity merchant,
             Long operationsCount,
             BigDecimal sumOperations,

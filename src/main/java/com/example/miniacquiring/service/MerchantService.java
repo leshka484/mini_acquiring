@@ -1,5 +1,9 @@
 package com.example.miniacquiring.service;
 
+import com.example.miniacquiring.core.dto.merchant.MerchantCreateDto;
+import com.example.miniacquiring.core.dto.merchant.MerchantGetDto;
+import com.example.miniacquiring.core.dto.merchant.MerchantUpdateDto;
+import com.example.miniacquiring.core.mapper.MerchantMapper;
 import com.example.miniacquiring.storage.CommissionTypeStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
@@ -15,31 +19,44 @@ public class MerchantService {
 
     private final MerchantStorage merchantStorage;
     private final CommissionTypeStorage commissionTypeStorage;
+    private final MerchantMapper merchantMapper;
 
-    public MerchantEntity create(String name, BigDecimal commissionValue, String commissionType) {
-        var type = commissionTypeStorage.findByType(commissionType);
-        var merchant = buildMerchantEntity(name, commissionValue, type);
+    public MerchantGetDto create(MerchantCreateDto request) {
+        var type = commissionTypeStorage.findById(request.getCommissionTypeId());
+        var merchant = buildMerchantEntity(request.getName(), request.getCommissionValue(), type);
+        merchantStorage.save(merchant);
         log.info("Merchant {} created", merchant.getName());
-        return merchantStorage.save(merchant);
+        return merchantMapper.toResponse(merchant);
     }
 
-    public MerchantEntity getById(Long id) {
+    public MerchantGetDto getById(Long id) {
         var merchant = merchantStorage.getById(id);
         log.info("Merchant with id = {} found", id);
-        return merchant;
+        return merchantMapper.toResponse(merchant);
     }
 
-    public MerchantEntity getByName(String name) {
+    public MerchantGetDto getByName(String name) {
         var merchant = merchantStorage.getByName(name);
         log.info("Merchant {} found", name);
-        return merchant;
+        return merchantMapper.toResponse(merchant);
     }
 
-    public void update(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
-        if (merchantStorage.existsById(id)) {
-            var merchant = buildMerchantEntity(id, name, commissionValue, commissionType);
-            log.info("Merchant {} updated", merchant.getName());
-        }
+    public List<MerchantGetDto> getAll() {
+        var merchants = merchantStorage.getAll();
+        log.info("Getting all merchants");
+        return merchantMapper.toResponse(merchants);
+    }
+
+    public MerchantGetDto update(Long id, MerchantUpdateDto request) {
+        merchantStorage.getById(id);
+        var type = commissionTypeStorage.findById(request.getCommissionTypeId());
+        var merchant = buildMerchantEntity(id,
+                request.getName(),
+                request.getCommissionValue(),
+                type);
+        merchantStorage.save(merchant);
+        log.info("Merchant {} updated", merchant.getName());
+        return merchantMapper.toResponse(merchant);
     }
 
     public void deleteById(List<Long> ids) {
@@ -47,25 +64,32 @@ public class MerchantService {
         log.info("Merchants deleted");
     }
 
-    private MerchantEntity buildMerchantEntity(Long id, String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
-        var merchant = MerchantEntity
+    public void deleteById(Long id) {
+        merchantStorage.deleteById(id, "Merchant with id = %d does not exist".formatted(id));
+    }
+
+    private MerchantEntity buildMerchantEntity(Long id,
+                                               String name,
+                                               BigDecimal commissionValue,
+                                               CommissionTypeEntity commissionType) {
+        return MerchantEntity
                 .builder()
                 .id(id)
                 .name(name)
                 .commissionValue(commissionValue)
                 .commissionType(commissionType)
                 .build();
-        return merchantStorage.save(merchant);
     }
 
-    private MerchantEntity buildMerchantEntity(String name, BigDecimal commissionValue, CommissionTypeEntity commissionType) {
-        var merchant = MerchantEntity
+    private MerchantEntity buildMerchantEntity(String name,
+                                               BigDecimal commissionValue,
+                                               CommissionTypeEntity commissionType) {
+        return MerchantEntity
                 .builder()
                 .name(name)
                 .commissionValue(commissionValue)
                 .commissionType(commissionType)
                 .build();
-        return merchantStorage.save(merchant);
     }
 
 }
