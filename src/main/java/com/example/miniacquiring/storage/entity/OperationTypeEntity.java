@@ -8,17 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Builder
 @Getter
 @Entity
+@NoArgsConstructor
 @Table(name = "operation_type", schema = Const.OPERATION_SCHEMA)
 public class OperationTypeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String type;
 
 }

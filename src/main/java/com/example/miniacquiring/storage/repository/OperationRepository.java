@@ -5,9 +5,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface OperationRepository extends BaseRepository<OperationEntity, Long> {
+public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
 
     @Query("""
                 SELECT oe
@@ -19,14 +20,14 @@ public interface OperationRepository extends BaseRepository<OperationEntity, Lon
     @Query("""
                 SELECT oe
                 FROM OperationEntity oe
-                WHERE oe.status.id = status
+                WHERE oe.status.id = :status
             """)
     List<OperationEntity> findByStatus(Long status);
 
     @Query("""
                 SELECT oe
                 FROM OperationEntity oe
-                WHERE oe.type.id = type
+                WHERE oe.type.id = :type
             """)
     List<OperationEntity> findByType(Long type);
 

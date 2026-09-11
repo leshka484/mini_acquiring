@@ -8,8 +8,10 @@ import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
+@Service
 public class ReportService {
 
     private final MerchantStorage merchantStorage;

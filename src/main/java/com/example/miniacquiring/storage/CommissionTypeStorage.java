@@ -2,21 +2,23 @@ package com.example.miniacquiring.storage;
 
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.repository.CommissionTypeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-public class CommissionTypeStorage extends BaseStorage<CommissionTypeEntity, Long, CommissionTypeRepository> {
+@RequiredArgsConstructor
+@Component
+public class CommissionTypeStorage {
 
-    public CommissionTypeStorage(CommissionTypeRepository commissionTypeRepository) {
-        super(commissionTypeRepository);
-    }
+    private final CommissionTypeRepository commissionTypeRepository;
 
     public CommissionTypeEntity findByType(String type) {
-        return repository.findByType(type).orElseThrow(
+        return commissionTypeRepository.findByType(type).orElseThrow(
                 () -> new IllegalArgumentException("Commission type not found")
         );
     }
 
     public CommissionTypeEntity findById(Long id) {
-        return repository.findById(id).orElseThrow(
+        return commissionTypeRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("Commission type not found")
         );
     }

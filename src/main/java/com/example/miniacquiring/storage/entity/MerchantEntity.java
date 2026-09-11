@@ -10,12 +10,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Getter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "merchant", schema = Const.CORE_SCHEMA)
 public class MerchantEntity {
 

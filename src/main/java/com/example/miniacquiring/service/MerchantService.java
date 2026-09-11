@@ -1,9 +1,9 @@
 package com.example.miniacquiring.service;
 
-import com.example.miniacquiring.core.dto.merchant.MerchantCreateDto;
-import com.example.miniacquiring.core.dto.merchant.MerchantGetDto;
-import com.example.miniacquiring.core.dto.merchant.MerchantUpdateDto;
-import com.example.miniacquiring.core.mapper.MerchantMapper;
+import com.example.miniacquiring.core.dto.merchant.CreateMerchantRequest;
+import com.example.miniacquiring.core.dto.merchant.GetMerchantResponse;
+import com.example.miniacquiring.core.dto.merchant.UpdateMerchantRequest;
+import com.example.miniacquiring.core.mapper.EntityMapper;
 import com.example.miniacquiring.storage.CommissionTypeStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
@@ -12,51 +12,55 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class MerchantService {
 
     private final MerchantStorage merchantStorage;
     private final CommissionTypeStorage commissionTypeStorage;
-    private final MerchantMapper merchantMapper;
+    private final EntityMapper entityMapper;
 
-    public MerchantGetDto create(MerchantCreateDto request) {
-        var type = commissionTypeStorage.findById(request.getCommissionTypeId());
-        var merchant = buildMerchantEntity(request.getName(), request.getCommissionValue(), type);
+    public GetMerchantResponse create(CreateMerchantRequest request) {
+        var type = commissionTypeStorage.findById(request.commissionTypeId());
+        var merchant = buildMerchantEntity(request.name(), request.commissionValue(), type);
         merchantStorage.save(merchant);
         log.info("Merchant {} created", merchant.getName());
-        return merchantMapper.toResponse(merchant);
+        return entityMapper.toResponse(merchant);
     }
 
-    public MerchantGetDto getById(Long id) {
+    public GetMerchantResponse getById(Long id) {
         var merchant = merchantStorage.getById(id);
         log.info("Merchant with id = {} found", id);
-        return merchantMapper.toResponse(merchant);
+        return entityMapper.toResponse(merchant);
     }
 
-    public MerchantGetDto getByName(String name) {
+    public GetMerchantResponse getByName(String name) {
         var merchant = merchantStorage.getByName(name);
         log.info("Merchant {} found", name);
-        return merchantMapper.toResponse(merchant);
+        return entityMapper.toResponse(merchant);
     }
 
-    public List<MerchantGetDto> getAll() {
-        var merchants = merchantStorage.getAll();
+    public Page<GetMerchantResponse> getAll(Pageable pageable) {
+        var merchants = merchantStorage.getAll(pageable);
         log.info("Getting all merchants");
-        return merchantMapper.toResponse(merchants);
+        return merchants.map(entityMapper::toResponse);
     }
 
-    public MerchantGetDto update(Long id, MerchantUpdateDto request) {
+    public GetMerchantResponse update(Long id, UpdateMerchantRequest request) {
         merchantStorage.getById(id);
-        var type = commissionTypeStorage.findById(request.getCommissionTypeId());
+        var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(id,
-                request.getName(),
-                request.getCommissionValue(),
+                request.name(),
+                request.commissionValue(),
                 type);
         merchantStorage.save(merchant);
         log.info("Merchant {} updated", merchant.getName());
-        return merchantMapper.toResponse(merchant);
+        return entityMapper.toResponse(merchant);
     }
 
     public void deleteById(List<Long> ids) {
