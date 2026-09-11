@@ -34,25 +34,25 @@ public class MerchantService {
     }
 
     public GetMerchantResponse getById(Long id) {
-        var merchant = merchantStorage.getById(id);
+        var merchant = merchantStorage.findById(id);
         log.info("Merchant with id = {} found", id);
         return entityMapper.toResponse(merchant);
     }
 
     public GetMerchantResponse getByName(String name) {
-        var merchant = merchantStorage.getByName(name);
+        var merchant = merchantStorage.findByName(name);
         log.info("Merchant {} found", name);
         return entityMapper.toResponse(merchant);
     }
 
     public Page<GetMerchantResponse> getAll(Pageable pageable) {
-        var merchants = merchantStorage.getAll(pageable);
+        var merchants = merchantStorage.findAll(pageable);
         log.info("Getting all merchants");
         return merchants.map(entityMapper::toResponse);
     }
 
     public GetMerchantResponse update(Long id, UpdateMerchantRequest request) {
-        merchantStorage.getById(id);
+        merchantStorage.findById(id);
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(id,
                 request.name(),
@@ -64,12 +64,12 @@ public class MerchantService {
     }
 
     public void deleteById(List<Long> ids) {
-        merchantStorage.deleteById(ids, "Some merchants do not exist");
+        merchantStorage.deleteById(ids);
         log.info("Merchants deleted");
     }
 
     public void deleteById(Long id) {
-        merchantStorage.deleteById(id, "Merchant with id = %d does not exist".formatted(id));
+        merchantStorage.deleteById(id);
     }
 
     private MerchantEntity buildMerchantEntity(Long id,

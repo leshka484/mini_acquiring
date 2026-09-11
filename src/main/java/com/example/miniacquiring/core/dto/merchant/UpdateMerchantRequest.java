@@ -11,7 +11,7 @@ public record UpdateMerchantRequest(
         String name,
 
         @NotNull
-        @DecimalMin("0")
+        @DecimalMin("0.01")
         BigDecimal commissionValue,
 
         @NotNull

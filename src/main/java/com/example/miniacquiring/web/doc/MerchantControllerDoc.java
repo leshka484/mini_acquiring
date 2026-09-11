@@ -47,7 +47,7 @@ public interface MerchantControllerDoc {
     @PutMapping("/{id}")
     public GetMerchantResponse update(Long id, @Valid @RequestBody UpdateMerchantRequest request);
 
-    @Operation (summary = "Delete many merchants by their ids")
+    @Operation(summary = "Delete many merchants by their ids")
     @ApiResponse(responseCode = "204", description = "Merchants successfully deleted")
     @ApiResponse(responseCode = "404", description = "Merchants not found")
     @DeleteMapping

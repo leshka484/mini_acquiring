@@ -30,11 +30,12 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
             """)
     boolean existsAllById(List<Long> ids);
 
+    @NonNull
     @Query("""
             SELECT me
             FROM MerchantEntity me
             """)
-    Page<MerchantEntity> getAll(Pageable pageable);
+    Page<MerchantEntity> findAll(@NonNull Pageable pageable);
 
     @Modifying
     @Query("""
