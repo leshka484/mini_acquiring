@@ -1,12 +1,20 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
-import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.util.Optional;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface CommissionTypeRepository extends JpaRepository<CommissionTypeEntity, Long>{
+public interface CommissionTypeRepository extends JpaRepository<CommissionTypeEntity, Long> {
+
+    @NonNull
+    @Query("""
+                SELECT cte
+                FROM CommissionTypeEntity cte
+                WHERE cte.id = :id
+            """)
+    Optional<CommissionTypeEntity> findById(@NonNull Long id);
 
     @Query("""
                 SELECT cte

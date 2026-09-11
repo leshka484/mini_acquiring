@@ -19,7 +19,7 @@ public class ReportService {
     private final CommissionStorage commissionStorage;
 
     public MerchantReport getMerchantFullReport(Long merchantId) {
-        var merchant = merchantStorage.getById(merchantId);
+        var merchant = merchantStorage.findById(merchantId);
         Long operationsCount = operationStorage.countMerchantOperations(merchantId);
         Long commissionsCount = commissionStorage.countMerchantCommissions(merchantId);
         BigDecimal sumOperations = operationStorage.sumMerchantOperations(merchantId);
@@ -28,7 +28,7 @@ public class ReportService {
     }
 
     public MerchantReport getMerchantReportByTime(Long merchantId, LocalDateTime from, LocalDateTime to) {
-        var merchant = merchantStorage.getById(merchantId);
+        var merchant = merchantStorage.findById(merchantId);
         Long operationsCount = operationStorage.countMerchantOperationsBetween(merchantId, from, to);
         Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(merchantId, from, to);
         BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(merchantId, from, to);

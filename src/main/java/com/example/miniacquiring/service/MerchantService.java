@@ -25,34 +25,34 @@ public class MerchantService {
     private final CommissionTypeStorage commissionTypeStorage;
     private final EntityMapper entityMapper;
 
-    public GetMerchantResponse create(CreateMerchantRequest request) {
+    public GetMerchantResponse create(CreateMerchantRequest request) { //TODO: Отлавливай исключения на этом уровне, напиши своё исключение, которое будет наследовать Runtime Exception
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(request.name(), request.commissionValue(), type);
         merchantStorage.save(merchant);
-        log.info("Merchant {} created", merchant.getName());
+        log.info("Creating merchant (name = {})", merchant.getName()); //TODO: Логи пиши вначале метода
         return entityMapper.toResponse(merchant);
     }
 
     public GetMerchantResponse getById(Long id) {
-        var merchant = merchantStorage.getById(id);
+        var merchant = merchantStorage.findById(id);
         log.info("Merchant with id = {} found", id);
         return entityMapper.toResponse(merchant);
     }
 
     public GetMerchantResponse getByName(String name) {
-        var merchant = merchantStorage.getByName(name);
+        var merchant = merchantStorage.findByName(name);
         log.info("Merchant {} found", name);
         return entityMapper.toResponse(merchant);
     }
 
     public Page<GetMerchantResponse> getAll(Pageable pageable) {
-        var merchants = merchantStorage.getAll(pageable);
+        var merchants = merchantStorage.findAll(pageable);
         log.info("Getting all merchants");
         return merchants.map(entityMapper::toResponse);
     }
 
     public GetMerchantResponse update(Long id, UpdateMerchantRequest request) {
-        merchantStorage.getById(id);
+        merchantStorage.findById(id); //TODO: Реализовать проверку на существование активного мерчанта, обернуть и отловить исключение
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(id,
                 request.name(),
@@ -64,12 +64,12 @@ public class MerchantService {
     }
 
     public void deleteById(List<Long> ids) {
-        merchantStorage.deleteById(ids, "Some merchants do not exist");
+        merchantStorage.deleteById(ids);
         log.info("Merchants deleted");
     }
 
     public void deleteById(Long id) {
-        merchantStorage.deleteById(id, "Merchant with id = %d does not exist".formatted(id));
+        merchantStorage.deleteById(id);
     }
 
     private MerchantEntity buildMerchantEntity(Long id,

@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS commission;
 
-CREATE  TABLE commission.commission_type IF NOT EXISTS ( 
+CREATE  TABLE commission.commission_type IF NOT EXISTS (
 	id                   bigint  NOT NULL  ,
 	"type"               varchar(255)  NOT NULL  ,
 	CONSTRAINT pk_commission_type PRIMARY KEY ( id )
@@ -8,7 +8,7 @@ CREATE  TABLE commission.commission_type IF NOT EXISTS (
 
 CREATE SCHEMA IF NOT EXISTS core;
 
-CREATE  TABLE core.merchant IF NOT EXISTS ( 
+CREATE  TABLE core.merchant IF NOT EXISTS ( -- Добавь отдельно таблицу статуса мерчанта (merchant_status)
 	id                   bigint  NOT NULL  ,
 	commission_value     numeric(38,2)  NOT NULL  ,
 	name                 text  NOT NULL  ,
@@ -16,7 +16,7 @@ CREATE  TABLE core.merchant IF NOT EXISTS (
 	CONSTRAINT pk_merchant PRIMARY KEY ( id )
  );
 
-CREATE  TABLE core."operation" IF NOT EXISTS ( 
+CREATE  TABLE core."operation" IF NOT EXISTS (
 	id                   bigint  NOT NULL  ,
 	created_at           timestamp  NOT NULL  ,
 	parent_id            bigint    ,
@@ -32,7 +32,7 @@ CREATE INDEX idx_operation_merchant_id ON core."operation"  ( merchant_id );
 
 CREATE INDEX idx_operation_status_id ON core."operation"  ( status_id );
 
-CREATE  TABLE core.commission IF NOT EXISTS ( 
+CREATE  TABLE core.commission IF NOT EXISTS (
 	id                   bigint  NOT NULL  ,
 	processed_at         timestamp  NOT NULL  ,
 	total_commission     numeric(38,2)  NOT NULL  ,
@@ -48,15 +48,15 @@ ALTER TABLE core.merchant ADD CONSTRAINT fk_merchant_commission_type FOREIGN KEY
 
 ALTER TABLE core."operation" ADD CONSTRAINT fk_operation_merchant FOREIGN KEY ( merchant_id ) REFERENCES core.merchant( id );
 
-CREATE SCHEMA IF NOT EXISTS "operation";
+CREATE SCHEMA IF NOT EXISTS "operation"; --Раздели схемы следующим образом: core, status, type
 
-CREATE  TABLE "operation".operation_status IF NOT EXISTS ( 
+CREATE  TABLE "operation".operation_status IF NOT EXISTS (
 	id                   bigint  NOT NULL  ,
 	status               varchar(255)  NOT NULL  ,
 	CONSTRAINT pk_operation_status PRIMARY KEY ( id )
  );
 
-CREATE  TABLE "operation".operation_type IF NOT EXISTS ( 
+CREATE  TABLE "operation".operation_type IF NOT EXISTS (
 	id                   bigint  NOT NULL  ,
 	"type"               varchar(255)  NOT NULL  ,
 	CONSTRAINT pk_operation_type PRIMARY KEY ( id )

@@ -4,9 +4,12 @@ import com.example.miniacquiring.core.dto.merchant.CreateMerchantRequest;
 import com.example.miniacquiring.core.dto.merchant.DeleteMerchantRequest;
 import com.example.miniacquiring.core.dto.merchant.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.merchant.UpdateMerchantRequest;
+import com.example.miniacquiring.core.dto.reports.MerchantReport;
 import com.example.miniacquiring.service.MerchantService;
+import com.example.miniacquiring.service.ReportService;
 import com.example.miniacquiring.web.doc.MerchantControllerDoc;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MerchantController implements MerchantControllerDoc {
 
     private final MerchantService merchantService;
+    private final ReportService reportService;
 
     @PostMapping
     public GetMerchantResponse create(@Valid @RequestBody CreateMerchantRequest request) {
@@ -62,6 +66,16 @@ public class MerchantController implements MerchantControllerDoc {
     @DeleteMapping("/{id}")
     public void delete(Long id) {
         merchantService.deleteById(id);
+    }
+
+    @GetMapping("/{id}/full-report")
+    public MerchantReport fullReport(Long id) {
+        return reportService.getMerchantFullReport(id);
+    }
+
+    @GetMapping("/{id}/time-report")
+    public MerchantReport reportByTime(Long id, LocalDateTime from, LocalDateTime to) { //TODO: Запросы все оформляются в виде одного объекта
+        return reportService.getMerchantReportByTime(id, from, to); //TODO: вынести репорты в отдельный контроллер
     }
 
 }
