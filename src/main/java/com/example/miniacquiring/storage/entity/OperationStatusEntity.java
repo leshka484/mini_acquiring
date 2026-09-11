@@ -9,10 +9,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Builder
 @Getter
 @Entity
+@NoArgsConstructor
 @Table(name = "operation_status", schema = Const.OPERATION_SCHEMA)
 public class OperationStatusEntity {
 
