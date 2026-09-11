@@ -10,17 +10,17 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface EntityMapper {
+public interface EntityMapper { //TODO: DtoMapper
 
     @Mapping(target = "commissionType", ignore = true)
-    MerchantEntity toEntity(CreateMerchantRequest request);
+    MerchantEntity toEntity(CreateMerchantRequest request); //TODO: dead code
 
     @Mapping(target = "commissionType", source = "commissionType.type")
     GetMerchantResponse toResponse(MerchantEntity merchant);
 
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "status", ignore = true)
-    OperationEntity toEntity(CreateOperationRequest request);
+    OperationEntity toEntity(CreateOperationRequest request); //TODO: dead code
 
     @Mapping(target = "merchant", source = "merchant.name")
     @Mapping(target = "type", source = "type.type")

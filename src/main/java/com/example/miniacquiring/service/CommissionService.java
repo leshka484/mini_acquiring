@@ -1,5 +1,6 @@
 package com.example.miniacquiring.service;
 
+import com.example.miniacquiring.core.EntityNotFoundException;
 import com.example.miniacquiring.core.mapper.EntityMapper;
 import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
@@ -19,13 +20,14 @@ import org.springframework.stereotype.Service;
 public class CommissionService {
 
     private final CommissionStorage commissionStorage;
-    private final OperationStorage operationStorage;
-    private final MerchantStorage merchantStorage;
-    private final EntityMapper entityMapper;
+    private final OperationStorage operationStorage; //TODO: dead code
+    private final MerchantStorage merchantStorage; //TODO: dead code
+    private final EntityMapper entityMapper; //TODO: dead code
 
     public void deleteById(List<Long> ids) {
         commissionStorage.deleteById(ids, "Some commissions do not exist");
         log.info("Commissions deleted");
+
     }
 
     public void deleteById(Long id) {
@@ -39,7 +41,7 @@ public class CommissionService {
                 .id(id)
                 .processedAt(processedAt)
                 .build();
-    }
+    } //TODO: dead code
 
     private CommissionEntity buildCommissionEntity(OperationEntity operation,
                                                    BigDecimal totalCommission,
@@ -50,6 +52,6 @@ public class CommissionService {
                 .totalCommission(totalCommission)
                 .processedAt(processedAt)
                 .build();
-    }
+    } //TODO: dead code
 
 }

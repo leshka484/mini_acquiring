@@ -25,11 +25,11 @@ public class MerchantService {
     private final CommissionTypeStorage commissionTypeStorage;
     private final EntityMapper entityMapper;
 
-    public GetMerchantResponse create(CreateMerchantRequest request) {
+    public GetMerchantResponse create(CreateMerchantRequest request) { //TODO: Отлавливай исключения на этом уровне, напиши своё исключение, которое будет наследовать Runtime Exception
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(request.name(), request.commissionValue(), type);
         merchantStorage.save(merchant);
-        log.info("Merchant {} created", merchant.getName());
+        log.info("Creating merchant (name = {})", merchant.getName()); //TODO: Логи пиши вначале метода
         return entityMapper.toResponse(merchant);
     }
 
@@ -52,7 +52,7 @@ public class MerchantService {
     }
 
     public GetMerchantResponse update(Long id, UpdateMerchantRequest request) {
-        merchantStorage.findById(id);
+        merchantStorage.findById(id); //TODO: Реализовать проверку на существование активного мерчанта, обернуть и отловить исключение
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var merchant = buildMerchantEntity(id,
                 request.name(),

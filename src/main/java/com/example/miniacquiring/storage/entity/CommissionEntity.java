@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "commission", schema = Const.CORE_SCHEMA)
 public class CommissionEntity {
 
-    @Id
+    @Id //TODO: Мы везде проставляем name явно
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

@@ -74,8 +74,8 @@ public class MerchantController implements MerchantControllerDoc {
     }
 
     @GetMapping("/{id}/time-report")
-    public MerchantReport reportByTime(Long id, LocalDateTime from, LocalDateTime to) {
-        return reportService.getMerchantReportByTime(id, from, to);
+    public MerchantReport reportByTime(Long id, LocalDateTime from, LocalDateTime to) { //TODO: Запросы все оформляются в виде одного объекта
+        return reportService.getMerchantReportByTime(id, from, to); //TODO: вынести репорты в отдельный контроллер
     }
 
 }

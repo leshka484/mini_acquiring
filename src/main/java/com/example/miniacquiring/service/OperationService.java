@@ -32,8 +32,8 @@ public class OperationService {
     private final MerchantStorage merchantStorage;
     private final EntityMapper entityMapper;
 
-    public GetOperationResponse create(CreateOperationRequest request) {
-        var type = operationTypeStorage.findById(request.typeId());
+    public GetOperationResponse create(CreateOperationRequest request) { //TODO: почитай про SOLID, а конкретно про Single Responsibility
+        var type = operationTypeStorage.findById(request.typeId()); //TODO: проверяй на наличие активного мерчанта(отдельный метод валидации)
         var status = operationStatusStorage.findById(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
         var operation = buildOperationEntity(merchant,
@@ -46,7 +46,7 @@ public class OperationService {
 
         operationStorage.save(operation);
         log.info("Operation id = {} created", operation.getId());
-        return entityMapper.toResponse(operation);
+        return entityMapper.toResponse(operation); //TODO: сделай все Create и update и delete void
     }
 
     public GetOperationResponse getById(Long id) {
@@ -62,7 +62,7 @@ public class OperationService {
     }
 
     public GetOperationResponse update(Long id, UpdateOperationRequest request) {
-        operationStorage.findById(id);
+        operationStorage.findById(id); //TODO: лупани проверку
         var type = operationTypeStorage.findById(request.typeId());
         var status = operationStatusStorage.findById(request.statusId());
         var operation = buildOperationEntity(id,
@@ -84,11 +84,8 @@ public class OperationService {
         operationStorage.deleteById(id);
     }
 
-    private OperationEntity buildOperationEntity(Long id,
-                                                 OperationStatusEntity status,
-                                                 OperationTypeEntity type,
-                                                 Long parentId,
-                                                 LocalDateTime processedAt) {
+    private OperationEntity buildOperationEntity(Long id, OperationStatusEntity status, OperationTypeEntity type,
+                                                 Long parentId, LocalDateTime processedAt) {
         return OperationEntity
                 .builder()
                 .id(id)
@@ -99,13 +96,11 @@ public class OperationService {
                 .build();
     }
 
-    private OperationEntity buildOperationEntity(MerchantEntity merchant,
-                                                 OperationStatusEntity status,
-                                                 BigDecimal sum,
+    private OperationEntity buildOperationEntity(MerchantEntity merchant, OperationStatusEntity status, BigDecimal sum,
                                                  OperationTypeEntity type,
                                                  Long parentId,
                                                  LocalDateTime createdAt,
-                                                 LocalDateTime processedAt) {
+                                                 LocalDateTime processedAt) { //TODO: Старайся не передавать в методы более трёх параметров
         return OperationEntity
                 .builder()
                 .merchant(merchant)

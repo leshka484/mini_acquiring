@@ -18,7 +18,7 @@ public class CommissionStorage {
         List<Long> uniqueIds = ids.stream()
                 .distinct()
                 .toList();
-        if (commissionRepository.existsAllById(uniqueIds)) {
+        if (commissionRepository.existsAllById(uniqueIds)) { //TODO: перед удалением можно не проверять на существование а просто в сервисе исключение отлавливать
             throw new IllegalArgumentException(errorText);
         }
         commissionRepository.deleteAllById(uniqueIds);
@@ -47,7 +47,7 @@ public class CommissionStorage {
         return commissionRepository.sumMerchantCommissionsBetween(merchantId, from, to);
     }
 
-    public Long save(CommissionEntity commission) {
+    public Long save(CommissionEntity commission) { //TODO: dead code
         commissionRepository.save(commission);
         return commission.getId();
     }
