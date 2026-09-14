@@ -1,9 +1,9 @@
 package com.example.miniacquiring.web.doc;
 
-import com.example.miniacquiring.core.dto.merchant.CreateMerchantRequest;
-import com.example.miniacquiring.core.dto.merchant.DeleteMerchantRequest;
-import com.example.miniacquiring.core.dto.merchant.GetMerchantResponse;
-import com.example.miniacquiring.core.dto.merchant.UpdateMerchantRequest;
+import com.example.miniacquiring.core.dto.CreateMerchantRequest;
+import com.example.miniacquiring.core.dto.DeleteMerchantRequest;
+import com.example.miniacquiring.core.dto.GetMerchantResponse;
+import com.example.miniacquiring.core.dto.UpdateMerchantRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -21,7 +21,7 @@ public interface MerchantControllerDoc {
     @Operation(summary = "Create merchant")
     @ApiResponse(responseCode = "200", description = "Merchant created successfully")
     @PostMapping
-    public GetMerchantResponse create(@Valid @RequestBody CreateMerchantRequest request);
+    public void create(@Valid @RequestBody CreateMerchantRequest request);
 
     @Operation(summary = "Get merchant by id")
     @ApiResponse(responseCode = "200", description = "Merchant found")
@@ -45,7 +45,7 @@ public interface MerchantControllerDoc {
     @ApiResponse(responseCode = "200", description = "Merchant updated")
     @ApiResponse(responseCode = "404", description = "Merchant not found")
     @PutMapping("/{id}")
-    public GetMerchantResponse update(Long id, @Valid @RequestBody UpdateMerchantRequest request);
+    public void update(Long id, @Valid @RequestBody UpdateMerchantRequest request);
 
     @Operation(summary = "Delete many merchants by their ids")
     @ApiResponse(responseCode = "204", description = "Merchants successfully deleted")

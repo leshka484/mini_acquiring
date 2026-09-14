@@ -1,9 +1,9 @@
 package com.example.miniacquiring.web.doc;
 
-import com.example.miniacquiring.core.dto.operation.CreateOperationRequest;
-import com.example.miniacquiring.core.dto.operation.DeleteOperationRequest;
-import com.example.miniacquiring.core.dto.operation.GetOperationResponse;
-import com.example.miniacquiring.core.dto.operation.UpdateOperationRequest;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
+import com.example.miniacquiring.core.dto.DeleteOperationRequest;
+import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.UpdateOperationRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -21,7 +21,7 @@ public interface OperationControllerDoc {
     @Operation(summary = "Create operation")
     @ApiResponse(responseCode = "200", description = "Operation created successfully")
     @PostMapping
-    public GetOperationResponse create(@Valid @RequestBody CreateOperationRequest request);
+    public void create(@Valid @RequestBody CreateOperationRequest request);
 
     @Operation(summary = "Get operation by id")
     @ApiResponse(responseCode = "200", description = "Operation found")
@@ -39,7 +39,7 @@ public interface OperationControllerDoc {
     @ApiResponse(responseCode = "200", description = "Operation updated")
     @ApiResponse(responseCode = "404", description = "Operation not found")
     @PutMapping("/{id}")
-    public GetOperationResponse update(Long id, @Valid @RequestBody UpdateOperationRequest request);
+    public void update(Long id, @Valid @RequestBody UpdateOperationRequest request);
 
     @Operation(summary = "Delete many operations by their ids")
     @ApiResponse(responseCode = "204", description = "Operations successfully deleted")

@@ -1,9 +1,10 @@
 package com.example.miniacquiring.storage;
 
+import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
+import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import com.example.miniacquiring.storage.repository.OperationRepository;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +19,7 @@ public class OperationStorage {
 
     public OperationEntity findById(Long id) {
         return operationRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Merchant with id = %d does not exist".formatted(id))
+                () -> new EntityNotFoundException("Merchant with id = %d does not exist".formatted(id))
         );
     }
 
@@ -27,19 +28,10 @@ public class OperationStorage {
     }
 
     public void deleteById(List<Long> ids) {
-        List<Long> uniqueIds = ids.stream()
-                .distinct()
-                .toList();
-        if (operationRepository.existsAllById(uniqueIds)) {
-            throw new IllegalArgumentException("Some operations do not exist");
-        }
-        operationRepository.deleteAllById(uniqueIds);
+        operationRepository.deleteAllById(ids);
     }
 
     public void deleteById(Long id) {
-        if (operationRepository.existsById(id)) {
-            throw new IllegalArgumentException("Operation with id = %d does not exist".formatted(id));
-        }
         operationRepository.deleteById(id);
     }
 
@@ -51,12 +43,12 @@ public class OperationStorage {
         return operationRepository.sumMerchantOperations(id);
     }
 
-    public Long countMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to) {
-        return operationRepository.countMerchantOperationsBetween(merchantId, from, to);
+    public Long countMerchantOperationsBetween(Long merchantId, CreateMerchantReportRequest request) {
+        return operationRepository.countMerchantOperationsBetween(merchantId, request.from(), request.to());
     }
 
-    public BigDecimal sumMerchantOperationsBetween(Long id, LocalDateTime from, LocalDateTime to) {
-        return operationRepository.sumMerchantOperationsBetween(id, from, to);
+    public BigDecimal sumMerchantOperationsBetween(Long id, CreateMerchantReportRequest request) {
+        return operationRepository.sumMerchantOperationsBetween(id, request.from(), request.to());
     }
 
     public Long save(OperationEntity operation) {

@@ -1,9 +1,9 @@
 package com.example.miniacquiring.web;
 
-import com.example.miniacquiring.core.dto.operation.CreateOperationRequest;
-import com.example.miniacquiring.core.dto.operation.DeleteOperationRequest;
-import com.example.miniacquiring.core.dto.operation.GetOperationResponse;
-import com.example.miniacquiring.core.dto.operation.UpdateOperationRequest;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
+import com.example.miniacquiring.core.dto.DeleteOperationRequest;
+import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.UpdateOperationRequest;
 import com.example.miniacquiring.service.OperationService;
 import com.example.miniacquiring.web.doc.OperationControllerDoc;
 import jakarta.validation.Valid;
@@ -28,8 +28,8 @@ public class OperationController implements OperationControllerDoc {
     private final OperationService operationService;
 
     @PostMapping
-    public GetOperationResponse create(@Valid @RequestBody CreateOperationRequest request) {
-        return operationService.create(request);
+    public void create(@Valid @RequestBody CreateOperationRequest request) {
+        operationService.create(request);
     }
 
     @GetMapping("/{id}")
@@ -45,8 +45,8 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @PutMapping("/{id}")
-    public GetOperationResponse update(Long id, @Valid @RequestBody UpdateOperationRequest request) {
-        return operationService.update(id, request);
+    public void update(Long id, @Valid @RequestBody UpdateOperationRequest request) {
+        operationService.update(id, request);
     }
 
     @DeleteMapping

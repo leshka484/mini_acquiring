@@ -23,11 +23,4 @@ public interface OperationTypeRepository extends JpaRepository<OperationTypeEnti
             """)
     Optional<OperationTypeEntity> findById(@NonNull Long id);
 
-    @Query("""
-                SELECT ote
-                FROM OperationTypeEntity ote
-                WHERE ote.type = :type
-            """)
-    Optional<OperationTypeEntity> findByType(String type);
-
 }

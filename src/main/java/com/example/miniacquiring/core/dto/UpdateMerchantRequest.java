@@ -1,4 +1,4 @@
-package com.example.miniacquiring.core.dto.merchant;
+package com.example.miniacquiring.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.DecimalMin;
@@ -10,13 +10,19 @@ public record UpdateMerchantRequest(
 
         @NotBlank
         @JsonProperty("name")
-        String name, //TODO: Для всех полей указываем @JsonProperty
+        String name,
 
         @NotNull
         @DecimalMin("0.01")
+        @JsonProperty("commission_value")
         BigDecimal commissionValue,
 
         @NotNull
-        Long commissionTypeId) {
+        @JsonProperty("commission_type_id")
+        Long commissionTypeId,
+
+        @NotNull
+        @JsonProperty("status_id")
+        Long statusId) {
 
 }

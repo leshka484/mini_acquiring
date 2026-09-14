@@ -1,6 +1,6 @@
 package com.example.miniacquiring.storage.entity;
 
-import com.example.miniacquiring.core.constant.Const;
+import com.example.miniacquiring.core.Const;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,14 +13,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "commission_type", schema = Const.COMMISSION_SCHEMA)
+@Table(name = "commission_type", schema = Const.TYPE_SCHEMA)
 public class CommissionTypeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long Id;
 
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false)
     private String type;
 
 }

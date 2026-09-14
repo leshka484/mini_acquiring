@@ -19,17 +19,6 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
             """)
     boolean existsById(@NonNull Long id);
 
-    @Query("""
-                SELECT CASE
-                    WHEN COUNT(me) = :MerchantEntity
-                    THEN true
-                    ELSE false
-                END
-                FROM MerchantEntity me
-                WHERE me.id IN :ids
-            """)
-    boolean existsAllById(List<Long> ids);
-
     @NonNull
     @Query("""
             SELECT me
@@ -59,10 +48,10 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
     Optional<MerchantEntity> findByName(String name);
 
     @Query("""
-                SELECT CASE WHEN COUNT(me) > 0 THEN true ELSE false END
-                FROM MerchantEntity me
-                WHERE me.name = :name
+            SELECT me.status.status = 'ACTIVE'
+            FROM MerchantEntity me
+            WHERE me.id = :id
             """)
-    boolean existsByName(String name);
+    boolean isActive(Long id);
 
 }

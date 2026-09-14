@@ -16,11 +16,4 @@ public interface CommissionTypeRepository extends JpaRepository<CommissionTypeEn
             """)
     Optional<CommissionTypeEntity> findById(@NonNull Long id);
 
-    @Query("""
-                SELECT cte
-                FROM CommissionTypeEntity cte
-                WHERE cte.type = :type
-            """)
-    Optional<CommissionTypeEntity> findByType(String type);
-
 }

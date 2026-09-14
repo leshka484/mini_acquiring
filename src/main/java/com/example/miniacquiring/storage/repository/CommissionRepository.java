@@ -4,45 +4,12 @@ import com.example.miniacquiring.storage.entity.CommissionEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface CommissionRepository extends JpaRepository<CommissionEntity, Long> {
-
-    @Query("""
-                SELECT CASE
-                    WHEN COUNT(ce) = :CommissionEntity
-                    THEN true
-                    ELSE false
-                END
-                FROM CommissionEntity ce
-                WHERE ce.id IN :ids
-            """)
-    boolean existsAllById(List<Long> ids);
-
-    @Query("""
-                SELECT ce
-                FROM CommissionEntity ce
-                WHERE ce.operation.id = :operationId
-            """)
-    Optional<CommissionEntity> findByOperationId(Long operationId);
-
-    @Query("""
-                SELECT ce
-                FROM CommissionEntity ce
-                WHERE ce.processedAt = :processedAt
-            """)
-    List<CommissionEntity> findByProcessedAt(LocalDateTime processedAt);
-
-    @Query("""
-                SELECT ce
-                FROM CommissionEntity ce
-                WHERE ce.processedAt BETWEEN :from AND :to
-            """)
-    List<CommissionEntity> findByProcessedAtBetween(LocalDateTime from, LocalDateTime to);
 
     @Modifying
     @Query("""
@@ -66,11 +33,11 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
     Long countMerchantCommissions(Long merchantId);
 
     @Query("""
-            SELECT COALESCE(SUM(ce.operation.sum), 0)
+            SELECT COALESCE(SUM(ce.totalCommission), 0)
             FROM CommissionEntity ce
             WHERE ce.operation.merchant.id = :merchantId
             """)
-    BigDecimal sumMerchantCommissions(Long id);
+    BigDecimal sumMerchantCommissions(Long merchantId);
 
     @Query("""
                 SELECT COUNT(ce)

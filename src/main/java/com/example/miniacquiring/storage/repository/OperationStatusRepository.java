@@ -23,11 +23,4 @@ public interface OperationStatusRepository extends JpaRepository<OperationStatus
             """)
     Optional<OperationStatusEntity> findById(@NonNull Long id);
 
-    @Query("""
-                SELECT ose
-                FROM OperationStatusEntity ose
-                WHERE ose.status = :status
-            """)
-    Optional<OperationStatusEntity> findByStatus(String status);
-
 }

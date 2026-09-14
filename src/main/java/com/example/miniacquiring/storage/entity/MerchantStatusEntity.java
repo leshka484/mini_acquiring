@@ -1,6 +1,7 @@
 package com.example.miniacquiring.storage.entity;
 
 import com.example.miniacquiring.core.Const;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,12 +13,14 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor
-@Table(name = "operation_type", schema = Const.TYPE_SCHEMA)
-public class OperationTypeEntity {
+@Table(name = "merchant_status", schema = Const.STATUS_SCHEMA)
+public class MerchantStatusEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String type;
+
+    @Column(nullable = false)
+    private String status;
 
 }

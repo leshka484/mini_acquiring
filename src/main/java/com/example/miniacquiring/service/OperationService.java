@@ -1,25 +1,24 @@
 package com.example.miniacquiring.service;
 
-import com.example.miniacquiring.core.dto.operation.CreateOperationRequest;
-import com.example.miniacquiring.core.dto.operation.GetOperationResponse;
-import com.example.miniacquiring.core.dto.operation.UpdateOperationRequest;
-import com.example.miniacquiring.core.mapper.EntityMapper;
+import com.example.miniacquiring.core.DtoMapper;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
+import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.UpdateOperationRequest;
+import com.example.miniacquiring.core.exception.EntityNotFoundException;
+import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStatusStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.OperationTypeStorage;
-import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.entity.OperationEntity;
-import com.example.miniacquiring.storage.entity.OperationStatusEntity;
-import com.example.miniacquiring.storage.entity.OperationTypeEntity;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,87 +29,78 @@ public class OperationService {
     private final OperationTypeStorage operationTypeStorage;
     private final OperationStatusStorage operationStatusStorage;
     private final MerchantStorage merchantStorage;
-    private final EntityMapper entityMapper;
+    private final DtoMapper dtoMapper;
 
-    public GetOperationResponse create(CreateOperationRequest request) { //TODO: почитай про SOLID, а конкретно про Single Responsibility
-        var type = operationTypeStorage.findById(request.typeId()); //TODO: проверяй на наличие активного мерчанта(отдельный метод валидации)
-        var status = operationStatusStorage.findById(request.statusId());
-        var merchant = merchantStorage.findById(request.merchantId());
-        var operation = buildOperationEntity(merchant,
-                status,
-                request.sum(),
-                type,
-                request.parentId(),
-                request.createdAt(),
-                request.processedAt());
-
-        operationStorage.save(operation);
-        log.info("Operation id = {} created", operation.getId());
-        return entityMapper.toResponse(operation); //TODO: сделай все Create и update и delete void
+    public void create(@Valid @RequestBody CreateOperationRequest request) {
+        log.info("Creating operation");
+        createOperationEntity(request);
     }
 
     public GetOperationResponse getById(Long id) {
-        var operation = operationStorage.findById(id);
-        log.info("Operation with id = {} found", id);
-        return entityMapper.toResponse(operation);
+        try {
+            log.info("Trying to find operation with id = {}", id);
+            var operation = operationStorage.findById(id);
+            return dtoMapper.toResponse(operation);
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
+        }
     }
 
     public Page<GetOperationResponse> getAll(Pageable pageable) {
-        var operations = operationStorage.findAll(pageable);
         log.info("Getting all operations");
-        return operations.map(entityMapper::toResponse);
+        var operations = operationStorage.findAll(pageable);
+        return operations.map(dtoMapper::toResponse);
     }
 
-    public GetOperationResponse update(Long id, UpdateOperationRequest request) {
-        operationStorage.findById(id); //TODO: лупани проверку
-        var type = operationTypeStorage.findById(request.typeId());
-        var status = operationStatusStorage.findById(request.statusId());
-        var operation = buildOperationEntity(id,
-                status,
-                type,
-                request.parentId(),
-                request.processedAt());
-        operationStorage.save(operation);
-        log.info("Operation with id = {}", id);
-        return entityMapper.toResponse(operation);
+    public void update(Long id, UpdateOperationRequest request) {
+        try {
+            log.info("Updating operation with id = {}", id);
+            operationStorage.findById(id);
+            updateOperationEntity(id, request);
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
+        }
     }
 
     public void deleteById(List<Long> ids) {
+        log.info("Deleting some operations");
         operationStorage.deleteById(ids);
-        log.info("Merchants deleted");
     }
 
     public void deleteById(Long id) {
+        log.info("Deleting operation");
         operationStorage.deleteById(id);
     }
 
-    private OperationEntity buildOperationEntity(Long id, OperationStatusEntity status, OperationTypeEntity type,
-                                                 Long parentId, LocalDateTime processedAt) {
-        return OperationEntity
+    private void createOperationEntity(CreateOperationRequest request) {
+        var type = operationTypeStorage.findById(request.typeId());
+        var status = operationStatusStorage.findById(request.statusId());
+        var merchant = merchantStorage.findById(request.merchantId());
+        var operation = OperationEntity
+                .builder()
+                .merchant(merchant)
+                .status(status)
+                .sum(request.sum())
+                .type(type)
+                .parentId(request.parentId())
+                .createdAt(request.createdAt())
+                .processedAt(request.processedAt())
+                .build();
+        operationStorage.save(operation);
+    }
+
+    private void updateOperationEntity(Long id, UpdateOperationRequest request) {
+        var type = operationTypeStorage.findById(request.typeId());
+        var status = operationStatusStorage.findById(request.statusId());
+        var operation = OperationEntity
                 .builder()
                 .id(id)
                 .status(status)
                 .type(type)
-                .parentId(parentId)
-                .processedAt(processedAt)
+                .parentId(request.parentId())
+                .processedAt(request.processedAt())
                 .build();
-    }
-
-    private OperationEntity buildOperationEntity(MerchantEntity merchant, OperationStatusEntity status, BigDecimal sum,
-                                                 OperationTypeEntity type,
-                                                 Long parentId,
-                                                 LocalDateTime createdAt,
-                                                 LocalDateTime processedAt) { //TODO: Старайся не передавать в методы более трёх параметров
-        return OperationEntity
-                .builder()
-                .merchant(merchant)
-                .status(status)
-                .sum(sum)
-                .type(type)
-                .parentId(parentId)
-                .createdAt(createdAt)
-                .processedAt(processedAt)
-                .build();
+        operationStorage.save(operation);
     }
 
 }
