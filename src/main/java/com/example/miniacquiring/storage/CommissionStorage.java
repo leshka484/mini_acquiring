@@ -1,9 +1,9 @@
 package com.example.miniacquiring.storage;
 
-import com.example.miniacquiring.storage.entity.CommissionEntity;
+import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.storage.repository.CommissionRepository;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +13,14 @@ public class CommissionStorage {
 
     private final CommissionRepository commissionRepository;
 
+    public void deleteById(List<Long> ids) {
+        commissionRepository.deleteAllById(ids);
+    }
+
+    public void deleteById(Long id) {
+        commissionRepository.deleteById(id);
+    }
+
     public Long countMerchantCommissions(Long merchantId) {
         return commissionRepository.countMerchantCommissions(merchantId);
     }
@@ -21,17 +29,12 @@ public class CommissionStorage {
         return commissionRepository.sumMerchantCommissions(merchantId);
     }
 
-    public Long countMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to) {
-        return commissionRepository.countMerchantCommissionsBetween(merchantId, from, to);
+    public Long countMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
+        return commissionRepository.countMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
-    public BigDecimal sumMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to) {
-        return commissionRepository.sumMerchantCommissionsBetween(merchantId, from, to);
-    }
-
-    public Long save(CommissionEntity commission) {
-        commissionRepository.save(commission);
-        return commission.getId();
+    public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
+        return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
 }

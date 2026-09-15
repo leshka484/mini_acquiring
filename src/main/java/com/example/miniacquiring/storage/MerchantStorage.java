@@ -1,7 +1,11 @@
 package com.example.miniacquiring.storage;
 
+import com.example.miniacquiring.core.dto.MerchantFilter;
+import com.example.miniacquiring.core.exception.EntityNotFoundException;
+import com.example.miniacquiring.core.exception.MerchantNotActiveException;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.repository.MerchantRepository;
+import com.example.miniacquiring.storage.repository.specification.MerchantSpecification;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,37 +18,28 @@ public class MerchantStorage {
 
     private final MerchantRepository merchantRepository;
 
-    public void deleteById(List<Long> ids, String errorText) {
-        List<Long> uniqueIds = ids.stream()
-                .distinct()
-                .toList();
-        if (merchantRepository.existsAllById(uniqueIds)) {
-            throw new IllegalArgumentException(errorText);
-        }
-        merchantRepository.deleteAllById(uniqueIds);
+    public void deleteById(List<Long> ids) {
+        merchantRepository.deleteAllById(ids);
     }
 
-    public void deleteById(Long id, String errorText) {
-        if (merchantRepository.existsById(id)) {
-            throw new IllegalArgumentException(errorText);
-        }
+    public void deleteById(Long id) {
         merchantRepository.deleteById(id);
     }
 
-    public Page<MerchantEntity> getAll(Pageable pageable) {
-        return merchantRepository.getAll(pageable);
+    public Page<MerchantEntity> getFilteredMerchants(MerchantFilter filter, Pageable pageable) {
+        return merchantRepository.findAll(MerchantSpecification.filter(filter), pageable);
     }
 
-    public MerchantEntity getById(Long id) {
+    public MerchantEntity findById(Long id) {
         return merchantRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Merchant with id = %d does not exist".formatted(id))
+                () -> new EntityNotFoundException("Merchant with id = %d does not exist".formatted(id))
         );
     }
 
-    public MerchantEntity getByName(String name) {
-        return merchantRepository.findByName(name).orElseThrow(
-                () -> new IllegalArgumentException("Merchant with name '%s' not found".formatted(name))
-        );
+    public void isActive(Long id) {
+        if (!merchantRepository.isActive(id)) {
+            throw new MerchantNotActiveException("Merchant with id = %d is not active".formatted(id));
+        }
     }
 
     public Long save(MerchantEntity merchant) {

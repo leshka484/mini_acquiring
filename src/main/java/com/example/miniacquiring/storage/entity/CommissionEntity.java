@@ -1,6 +1,6 @@
 package com.example.miniacquiring.storage.entity;
 
-import com.example.miniacquiring.core.constant.Const;
+import com.example.miniacquiring.core.Const;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,6 +26,7 @@ public class CommissionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @OneToOne

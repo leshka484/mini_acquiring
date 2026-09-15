@@ -2,15 +2,16 @@ package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.util.List;
-import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> {
+public interface MerchantRepository extends JpaRepository<MerchantEntity, Long>,
+        JpaSpecificationExecutor<MerchantEntity> {
 
     @Query("""
             SELECT CASE WHEN COUNT(me) > 0 THEN true ELSE false END
@@ -19,22 +20,12 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
             """)
     boolean existsById(@NonNull Long id);
 
-    @Query("""
-                SELECT CASE
-                    WHEN COUNT(me) = :MerchantEntity
-                    THEN true
-                    ELSE false
-                END
-                FROM MerchantEntity me
-                WHERE me.id IN :ids
-            """)
-    boolean existsAllById(List<Long> ids);
-
+    @NonNull
     @Query("""
             SELECT me
             FROM MerchantEntity me
             """)
-    Page<MerchantEntity> getAll(Pageable pageable);
+    Page<MerchantEntity> findAll(@NonNull Pageable pageable);
 
     @Modifying
     @Query("""
@@ -51,17 +42,10 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long> 
     void deleteAllById(List<Long> ids);
 
     @Query("""
-                SELECT me
-                FROM MerchantEntity me
-                WHERE me.name = :name
+            SELECT me.status.status = 'ACTIVE'
+            FROM MerchantEntity me
+            WHERE me.id = :id
             """)
-    Optional<MerchantEntity> findByName(String name);
-
-    @Query("""
-                SELECT CASE WHEN COUNT(me) > 0 THEN true ELSE false END
-                FROM MerchantEntity me
-                WHERE me.name = :name
-            """)
-    boolean existsByName(String name);
+    boolean isActive(Long id);
 
 }

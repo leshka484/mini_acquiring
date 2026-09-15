@@ -1,4 +1,4 @@
-package com.example.miniacquiring.core.mapper;
+package com.example.miniacquiring.core;
 
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface EntityMapper {
+public interface DtoMapper {
 
     @Mapping(target = "commissionType", source = "commissionType.type")
     @Mapping(target = "status", source = "status.status")

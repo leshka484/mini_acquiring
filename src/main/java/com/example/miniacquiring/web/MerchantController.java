@@ -1,9 +1,10 @@
 package com.example.miniacquiring.web;
 
-import com.example.miniacquiring.core.dto.merchant.CreateMerchantRequest;
-import com.example.miniacquiring.core.dto.merchant.DeleteMerchantRequest;
-import com.example.miniacquiring.core.dto.merchant.GetMerchantResponse;
-import com.example.miniacquiring.core.dto.merchant.UpdateMerchantRequest;
+import com.example.miniacquiring.core.Const;
+import com.example.miniacquiring.core.dto.DeleteMerchantRequest;
+import com.example.miniacquiring.core.dto.GetMerchantResponse;
+import com.example.miniacquiring.core.dto.MerchantFilter;
+import com.example.miniacquiring.core.dto.MerchantRequest;
 import com.example.miniacquiring.service.MerchantService;
 import com.example.miniacquiring.web.doc.MerchantControllerDoc;
 import jakarta.validation.Valid;
@@ -28,30 +29,21 @@ public class MerchantController implements MerchantControllerDoc {
     private final MerchantService merchantService;
 
     @PostMapping
-    public GetMerchantResponse create(@Valid @RequestBody CreateMerchantRequest request) {
-        return merchantService.create(request);
+    public void create(@Valid @RequestBody MerchantRequest request) {
+        merchantService.create(request);
     }
 
-    @GetMapping("/{id}")
-    public GetMerchantResponse getById(Long id) {
-        return merchantService.getById(id);
-    }
-
-    @GetMapping
-    public Page<GetMerchantResponse> getAll(
+    @GetMapping()
+    public Page<GetMerchantResponse> getFilteredMerchants(
             @ParameterObject
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return merchantService.getAll(pageable);
-    }
-
-    @GetMapping("/by-name/{name}")
-    public GetMerchantResponse getByName(String name) {
-        return merchantService.getByName(name);
+            @PageableDefault(size = Const.PER_PAGE) Pageable pageable,
+            MerchantFilter filter) {
+        return merchantService.getFilteredMerchants(filter, pageable);
     }
 
     @PutMapping("/{id}")
-    public GetMerchantResponse update(Long id, @Valid @RequestBody UpdateMerchantRequest request) {
-        return merchantService.update(id, request);
+    public void update(Long id, @Valid @RequestBody MerchantRequest request) {
+        merchantService.update(id, request);
     }
 
     @DeleteMapping

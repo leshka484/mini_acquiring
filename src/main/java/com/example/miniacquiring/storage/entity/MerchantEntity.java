@@ -1,6 +1,6 @@
 package com.example.miniacquiring.storage.entity;
 
-import com.example.miniacquiring.core.constant.Const;
+import com.example.miniacquiring.core.Const;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,16 +25,21 @@ public class MerchantEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false, name = "commission_value")
+    @Column(name = "commission_value", nullable = false)
     private BigDecimal commissionValue;
 
     @ManyToOne
     @JoinColumn(name = "commission_type", nullable = false)
     private CommissionTypeEntity commissionType;
+
+    @ManyToOne
+    @JoinColumn(name = "status", nullable = false)
+    private MerchantStatusEntity status;
 
 }
