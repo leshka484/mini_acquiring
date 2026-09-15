@@ -1,9 +1,11 @@
 package com.example.miniacquiring.storage;
 
+import com.example.miniacquiring.core.dto.MerchantFilter;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.MerchantNotActiveException;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.repository.MerchantRepository;
+import com.example.miniacquiring.storage.repository.specification.MerchantSpecification;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,19 +26,13 @@ public class MerchantStorage {
         merchantRepository.deleteById(id);
     }
 
-    public Page<MerchantEntity> findAll(Pageable pageable) {
-        return merchantRepository.findAll(pageable);
+    public Page<MerchantEntity> getFilteredMerchants(MerchantFilter filter, Pageable pageable) {
+        return merchantRepository.findAll(MerchantSpecification.filter(filter), pageable);
     }
 
     public MerchantEntity findById(Long id) {
         return merchantRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Merchant with id = %d does not exist".formatted(id))
-        );
-    }
-
-    public MerchantEntity findByName(String name) {
-        return merchantRepository.findByName(name).orElseThrow(
-                () -> new EntityNotFoundException("Merchant with name '%s' not found".formatted(name))
         );
     }
 

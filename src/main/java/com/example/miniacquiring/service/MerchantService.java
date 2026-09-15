@@ -1,9 +1,9 @@
 package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.DtoMapper;
-import com.example.miniacquiring.core.dto.CreateMerchantRequest;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
-import com.example.miniacquiring.core.dto.UpdateMerchantRequest;
+import com.example.miniacquiring.core.dto.MerchantFilter;
+import com.example.miniacquiring.core.dto.MerchantRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.MerchantNotActiveException;
@@ -29,7 +29,7 @@ public class MerchantService {
     private final MerchantStatusStorage merchantStatusStorage;
     private final DtoMapper dtoMapper;
 
-    public void create(CreateMerchantRequest request) {
+    public void create(MerchantRequest request) {
         try {
             log.info("Creating merchant");
             createMerchantEntity(request);
@@ -48,23 +48,13 @@ public class MerchantService {
         }
     }
 
-    public GetMerchantResponse getByName(String name) {
-        try {
-            log.info("Trying to find merchant with name = {}", name);
-            var merchant = merchantStorage.findByName(name);
-            return dtoMapper.toResponse(merchant);
-        } catch (EntityNotFoundException exception) {
-            throw new NotFoundException(exception.getMessage());
-        }
+    public Page<GetMerchantResponse> getFilteredMerchants(MerchantFilter filter, Pageable pageable) {
+        log.info("Getting merchants with filter");
+        return merchantStorage.getFilteredMerchants(filter, pageable)
+                .map(dtoMapper::toResponse);
     }
 
-    public Page<GetMerchantResponse> getAll(Pageable pageable) {
-        log.info("Getting all merchants");
-        var merchants = merchantStorage.findAll(pageable);
-        return merchants.map(dtoMapper::toResponse);
-    }
-
-    public void update(Long id, UpdateMerchantRequest request) {
+    public void update(Long id, MerchantRequest request) {
         try {
             log.info("Updating merchant {}", request.name());
             merchantStorage.isActive(id);
@@ -84,7 +74,7 @@ public class MerchantService {
         merchantStorage.deleteById(id);
     }
 
-    private void updateMerchantEntity(Long id, UpdateMerchantRequest request) {
+    private void updateMerchantEntity(Long id, MerchantRequest request) {
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var status = merchantStatusStorage.findById(request.statusId());
         var merchant = MerchantEntity
@@ -98,7 +88,7 @@ public class MerchantService {
         merchantStorage.save(merchant);
     }
 
-    private void createMerchantEntity(CreateMerchantRequest request) {
+    private void createMerchantEntity(MerchantRequest request) {
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var status = merchantStatusStorage.findById(request.statusId());
         var merchant = MerchantEntity

@@ -30,11 +30,11 @@ public class CommissionStorage {
     }
 
     public Long countMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
-        return commissionRepository.countMerchantCommissionsBetween(merchantId, request.from(), request.to());
+        return commissionRepository.countMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
     public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
-        return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.from(), request.to());
+        return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
 }

@@ -44,11 +44,11 @@ public class OperationStorage {
     }
 
     public Long countMerchantOperationsBetween(Long merchantId, CreateMerchantReportRequest request) {
-        return operationRepository.countMerchantOperationsBetween(merchantId, request.from(), request.to());
+        return operationRepository.countMerchantOperationsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
     public BigDecimal sumMerchantOperationsBetween(Long id, CreateMerchantReportRequest request) {
-        return operationRepository.sumMerchantOperationsBetween(id, request.from(), request.to());
+        return operationRepository.sumMerchantOperationsBetween(id, request.startDateTime(), request.endDateTime());
     }
 
     public Long save(OperationEntity operation) {

@@ -1,9 +1,11 @@
 package com.example.miniacquiring.core.exception;
 
-public class ForbiddenException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class ForbiddenException extends AbstractHttpException {
 
     public ForbiddenException(String message) {
-        super(message);
+        super(HttpStatus.FORBIDDEN, message);
     }
 
 }

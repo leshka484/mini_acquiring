@@ -25,7 +25,7 @@ public class ReportService {
     }
 
     public GetMerchantReportResponse getMerchantReportByTime(Long merchantId, CreateMerchantReportRequest request) {
-        log.info("Getting report from {} to {} by merchant id = {}", request.from(), request.to(), merchantId);
+        log.info("Getting report from {} to {} by merchant id = {}", request.startDateTime(), request.endDateTime(), merchantId);
         return buildTimeReport(merchantId, request);
     }
 
