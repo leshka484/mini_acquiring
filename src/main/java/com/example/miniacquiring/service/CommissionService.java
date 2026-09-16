@@ -31,7 +31,7 @@ public class CommissionService {
 
     public void processCommissions() {
         var paidOperations = operationStorage.findPaid(Const.PAID_OPERATION_STATUS);
-        for (OperationEntity operation : paidOperations) {
+        paidOperations.stream().map(operation -> {
             var merchant = operation.getMerchant();
             var type = merchant.getCommissionType().getType();
             CommissionStrategy strategy = switch (type) {
@@ -40,8 +40,9 @@ public class CommissionService {
                 default -> throw new IllegalStateException("Unexpected value: " + type);
             };
             BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
-            createCommissionEntity(operation, totalCommission);
-        }
+            return createCommissionEntity(operation, totalCommission);
+        }).forEach(commissionStorage::save);
+
     }
 
     public GetCommissionResponse getById(Long id) {
@@ -64,13 +65,12 @@ public class CommissionService {
         commissionStorage.deleteById(id);
     }
 
-
-    private void createCommissionEntity(OperationEntity operation, BigDecimal totalCommission) {
-        var commission = CommissionEntity
+    private CommissionEntity createCommissionEntity(OperationEntity operation, BigDecimal totalCommission) {
+        return CommissionEntity
                 .builder()
                 .operation(operation)
                 .totalCommission(totalCommission)
                 .build();
-        commissionStorage.save(commission);
     }
+
 }
