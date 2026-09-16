@@ -21,6 +21,13 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
             """)
     Page<OperationEntity> findAll(@NonNull Pageable pageable);
 
+    @Query("""
+            SELECT oe
+            FROM OperationEntity oe
+            WHERE oe.status.status = :status
+            """)
+    List<OperationEntity> findByStatus(String status);
+
     @Modifying
     @Query("""
                 DELETE FROM OperationEntity oe

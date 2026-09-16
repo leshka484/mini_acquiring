@@ -4,7 +4,7 @@ import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.dto.DeleteMerchantRequest;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.MerchantFilter;
-import com.example.miniacquiring.core.dto.MerchantRequest;
+import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
 import com.example.miniacquiring.service.MerchantService;
 import com.example.miniacquiring.web.doc.MerchantControllerDoc;
 import jakarta.validation.Valid;
@@ -29,7 +29,7 @@ public class MerchantController implements MerchantControllerDoc {
     private final MerchantService merchantService;
 
     @PostMapping
-    public void create(@Valid @RequestBody MerchantRequest request) {
+    public void create(@Valid @RequestBody UpsertMerchantRequest request) {
         merchantService.create(request);
     }
 
@@ -42,7 +42,7 @@ public class MerchantController implements MerchantControllerDoc {
     }
 
     @PutMapping("/{id}")
-    public void update(Long id, @Valid @RequestBody MerchantRequest request) {
+    public void update(Long id, @Valid @RequestBody UpsertMerchantRequest request) {
         merchantService.update(id, request);
     }
 

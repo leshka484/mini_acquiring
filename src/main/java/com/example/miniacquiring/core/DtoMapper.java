@@ -1,7 +1,9 @@
 package com.example.miniacquiring.core;
 
+import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import org.mapstruct.Mapper;
@@ -18,5 +20,8 @@ public interface DtoMapper {
     @Mapping(target = "type", source = "type.type")
     @Mapping(target = "status", source = "status.status")
     GetOperationResponse toResponse(OperationEntity entity);
+
+    @Mapping(target = "operation", source = "operation.id")
+    GetCommissionResponse toResponse(CommissionEntity entity);
 
 }

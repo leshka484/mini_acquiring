@@ -1,9 +1,8 @@
 package com.example.miniacquiring.web;
 
-import com.example.miniacquiring.core.dto.CreateOperationRequest;
+import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.core.dto.DeleteOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
-import com.example.miniacquiring.core.dto.UpdateOperationRequest;
 import com.example.miniacquiring.service.OperationService;
 import com.example.miniacquiring.web.doc.OperationControllerDoc;
 import jakarta.validation.Valid;
@@ -28,7 +27,7 @@ public class OperationController implements OperationControllerDoc {
     private final OperationService operationService;
 
     @PostMapping
-    public void create(@Valid @RequestBody CreateOperationRequest request) {
+    public void create(@Valid @RequestBody UpsertOperationRequest request) {
         operationService.create(request);
     }
 
@@ -45,7 +44,7 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @PutMapping("/{id}")
-    public void update(Long id, @Valid @RequestBody UpdateOperationRequest request) {
+    public void update(Long id, @Valid @RequestBody UpsertOperationRequest request) {
         operationService.update(id, request);
     }
 

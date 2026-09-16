@@ -1,9 +1,8 @@
 package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.DtoMapper;
-import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
-import com.example.miniacquiring.core.dto.UpdateOperationRequest;
+import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
@@ -31,7 +30,7 @@ public class OperationService {
     private final MerchantStorage merchantStorage;
     private final DtoMapper dtoMapper;
 
-    public void create(@Valid @RequestBody CreateOperationRequest request) {
+    public void create(@Valid @RequestBody UpsertOperationRequest request) {
         log.info("Creating operation");
         createOperationEntity(request);
     }
@@ -52,7 +51,7 @@ public class OperationService {
         return operations.map(dtoMapper::toResponse);
     }
 
-    public void update(Long id, UpdateOperationRequest request) {
+    public void update(Long id, UpsertOperationRequest request) {
         try {
             log.info("Updating operation with id = {}", id);
             operationStorage.findById(id);
@@ -72,7 +71,7 @@ public class OperationService {
         operationStorage.deleteById(id);
     }
 
-    private void createOperationEntity(CreateOperationRequest request) {
+    private void createOperationEntity(UpsertOperationRequest request) {
         var type = operationTypeStorage.findById(request.typeId());
         var status = operationStatusStorage.findById(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
@@ -83,13 +82,12 @@ public class OperationService {
                 .sum(request.sum())
                 .type(type)
                 .parentId(request.parentId())
-                .createdAt(request.createdAt())
                 .processedAt(request.processedAt())
                 .build();
         operationStorage.save(operation);
     }
 
-    private void updateOperationEntity(Long id, UpdateOperationRequest request) {
+    private void updateOperationEntity(Long id, UpsertOperationRequest request) {
         var type = operationTypeStorage.findById(request.typeId());
         var status = operationStatusStorage.findById(request.statusId());
         var operation = OperationEntity

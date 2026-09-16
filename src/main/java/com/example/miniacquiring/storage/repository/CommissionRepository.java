@@ -4,12 +4,21 @@ import com.example.miniacquiring.storage.entity.CommissionEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface CommissionRepository extends JpaRepository<CommissionEntity, Long> {
+
+    @Query("""
+                SELECT ce
+                FROM CommissionEntity ce
+                WHERE ce.id = :id
+            """)
+    @NonNull
+    Optional<CommissionEntity> findById(@NonNull Long id);
 
     @Modifying
     @Query("""

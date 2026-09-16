@@ -3,7 +3,7 @@ package com.example.miniacquiring.service;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.MerchantFilter;
-import com.example.miniacquiring.core.dto.MerchantRequest;
+import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.MerchantNotActiveException;
@@ -29,7 +29,7 @@ public class MerchantService {
     private final MerchantStatusStorage merchantStatusStorage;
     private final DtoMapper dtoMapper;
 
-    public void create(MerchantRequest request) {
+    public void create(UpsertMerchantRequest request) {
         try {
             log.info("Creating merchant");
             createMerchantEntity(request);
@@ -41,8 +41,7 @@ public class MerchantService {
     public GetMerchantResponse getById(Long id) {
         try {
             log.info("Trying to find merchant with id = {}", id);
-            var merchant = merchantStorage.findById(id);
-            return dtoMapper.toResponse(merchant);
+            return dtoMapper.toResponse(merchantStorage.findById(id));
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
@@ -54,7 +53,7 @@ public class MerchantService {
                 .map(dtoMapper::toResponse);
     }
 
-    public void update(Long id, MerchantRequest request) {
+    public void update(Long id, UpsertMerchantRequest request) {
         try {
             log.info("Updating merchant {}", request.name());
             merchantStorage.isActive(id);
@@ -74,7 +73,7 @@ public class MerchantService {
         merchantStorage.deleteById(id);
     }
 
-    private void updateMerchantEntity(Long id, MerchantRequest request) {
+    private void updateMerchantEntity(Long id, UpsertMerchantRequest request) {
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var status = merchantStatusStorage.findById(request.statusId());
         var merchant = MerchantEntity
@@ -88,7 +87,7 @@ public class MerchantService {
         merchantStorage.save(merchant);
     }
 
-    private void createMerchantEntity(MerchantRequest request) {
+    private void createMerchantEntity(UpsertMerchantRequest request) {
         var type = commissionTypeStorage.findById(request.commissionTypeId());
         var status = merchantStatusStorage.findById(request.statusId());
         var merchant = MerchantEntity

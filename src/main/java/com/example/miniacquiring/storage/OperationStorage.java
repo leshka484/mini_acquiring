@@ -23,6 +23,14 @@ public class OperationStorage {
         );
     }
 
+    public List<OperationEntity> findPaid(String status) {
+        var operations = operationRepository.findByStatus(status);
+        if (operations.isEmpty()) {
+            throw new EntityNotFoundException("No paid operations found");
+        }
+        return operations;
+    }
+
     public Page<OperationEntity> findAll(Pageable pageable) {
         return operationRepository.findAll(pageable);
     }
