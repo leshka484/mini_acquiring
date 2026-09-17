@@ -9,7 +9,7 @@ public record GetCommissionResponse(
         Long id,
 
         @JsonProperty("operation_id")
-        Long operationId,
+        Long operation,
 
         @JsonProperty("total_commission")
         BigDecimal totalCommission) {

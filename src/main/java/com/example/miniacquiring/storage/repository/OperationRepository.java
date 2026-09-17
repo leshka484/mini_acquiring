@@ -1,5 +1,6 @@
 package com.example.miniacquiring.storage.repository;
 
+import com.example.miniacquiring.core.OperationStatusEnum;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -7,10 +8,10 @@ import java.util.List;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
 
@@ -21,12 +22,30 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
             """)
     Page<OperationEntity> findAll(@NonNull Pageable pageable);
 
+    @EntityGraph(attributePaths = {
+            "merchant",
+            "merchant.commissionType"
+    })
     @Query("""
-            SELECT oe
-            FROM OperationEntity oe
-            WHERE oe.status.status = :status
+                SELECT oe
+                FROM OperationEntity oe
+                WHERE oe.status.code = :code
             """)
-    List<OperationEntity> findByStatus(String status);
+    List<OperationEntity> findByStatus(OperationStatusEnum code);
+
+    @Modifying
+    @Query("""
+                 UPDATE OperationEntity oe
+                 SET oe.status = (
+                            SELECT ose
+                            FROM OperationStatusEntity ose
+                            WHERE ose.code = :completedCode)
+                 WHERE oe.status = (
+                            SELECT ose
+                            FROM OperationStatusEntity ose
+                            WHERE ose.code = :paidCode)
+            """)
+    void completeAllPaid(OperationStatusEnum paidCode, OperationStatusEnum completedCode);
 
     @Modifying
     @Query("""

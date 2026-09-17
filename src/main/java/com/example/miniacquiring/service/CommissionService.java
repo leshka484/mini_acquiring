@@ -5,17 +5,19 @@ import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
-import com.example.miniacquiring.service.commisstionStrategy.CommissionStrategy;
 import com.example.miniacquiring.service.commisstionStrategy.FixedCommissionStrategy;
 import com.example.miniacquiring.service.commisstionStrategy.PercentageCommissionStrategy;
 import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.entity.OperationEntity;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -26,23 +28,23 @@ public class CommissionService {
     private final CommissionStorage commissionStorage;
     private final OperationStorage operationStorage;
     private final DtoMapper dtoMapper;
-    PercentageCommissionStrategy percentageCommissionStrategy;
-    FixedCommissionStrategy fixedCommissionStrategy;
+    private final PercentageCommissionStrategy percentageCommissionStrategy;
+    private final FixedCommissionStrategy fixedCommissionStrategy;
 
+    @Transactional
+    @Scheduled(
+            initialDelayString = "0",
+            fixedDelayString = "${commission.scheduler.delay}")
     public void processCommissions() {
-        var paidOperations = operationStorage.findPaid(Const.PAID_OPERATION_STATUS);
-        paidOperations.stream().map(operation -> {
-            var merchant = operation.getMerchant();
-            var type = merchant.getCommissionType().getType();
-            CommissionStrategy strategy = switch (type) {
-                case Const.PERCENTAGE_COMMISSION -> percentageCommissionStrategy;
-                case Const.FIXED_COMMISSION -> fixedCommissionStrategy;
-                default -> throw new IllegalStateException("Unexpected value: " + type);
-            };
-            BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
-            return createCommissionEntity(operation, totalCommission);
-        }).forEach(commissionStorage::save);
-
+        log.info("Processing commissions");
+        var paidOperations = operationStorage.findPaid();
+        if (paidOperations.isEmpty()) {
+            log.info("No paid operations found. Nothing to process.");
+            return;
+        }
+        var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
+        commissionStorage.saveAll(commissions);
+        operationStorage.completeAllPaid();
     }
 
     public GetCommissionResponse getById(Long id) {
@@ -70,7 +72,25 @@ public class CommissionService {
                 .builder()
                 .operation(operation)
                 .totalCommission(totalCommission)
+                .processedAt(LocalDateTime.now())
                 .build();
+    }
+
+    private CommissionEntity getCommissionForOperation(OperationEntity operation) {
+        try {
+            var merchant = operation.getMerchant();
+            var type = merchant.getCommissionType().getType();
+            var strategy = switch (type) {
+                case Const.PERCENTAGE_COMMISSION -> percentageCommissionStrategy;
+                case Const.FIXED_COMMISSION -> fixedCommissionStrategy;
+                default -> throw new IllegalStateException("No strategy for commission type" + type);
+            };
+            BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
+            return createCommissionEntity(operation, totalCommission);
+        } catch (IllegalStateException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        }
     }
 
 }

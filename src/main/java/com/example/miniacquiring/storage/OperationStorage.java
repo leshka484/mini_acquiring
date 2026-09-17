@@ -1,5 +1,6 @@
 package com.example.miniacquiring.storage;
 
+import com.example.miniacquiring.core.OperationStatusEnum;
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.OperationEntity;
@@ -23,12 +24,12 @@ public class OperationStorage {
         );
     }
 
-    public List<OperationEntity> findPaid(String status) {
-        var operations = operationRepository.findByStatus(status);
-        if (operations.isEmpty()) {
-            throw new EntityNotFoundException("No paid operations found");
-        }
-        return operations;
+    public List<OperationEntity> findPaid() {
+        return operationRepository.findByStatus(OperationStatusEnum.PAID);
+    }
+
+    public void completeAllPaid() {
+        operationRepository.completeAllPaid(OperationStatusEnum.PAID, OperationStatusEnum.COMPLETED);
     }
 
     public Page<OperationEntity> findAll(Pageable pageable) {

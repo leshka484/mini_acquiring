@@ -11,6 +11,7 @@ import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.OperationTypeStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +83,7 @@ public class OperationService {
                 .sum(request.sum())
                 .type(type)
                 .parentId(request.parentId())
-                .processedAt(request.processedAt())
+                .createdAt(LocalDateTime.now())
                 .build();
         operationStorage.save(operation);
     }

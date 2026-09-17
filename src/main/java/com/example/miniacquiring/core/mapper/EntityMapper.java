@@ -16,7 +16,7 @@ public interface EntityMapper {
 
     @Mapping(target = "merchant", source = "merchant.name")
     @Mapping(target = "type", source = "type.type")
-    @Mapping(target = "status", source = "status.status")
+    @Mapping(target = "status", source = "status.name")
     GetOperationResponse toResponse(OperationEntity entity);
 
 }

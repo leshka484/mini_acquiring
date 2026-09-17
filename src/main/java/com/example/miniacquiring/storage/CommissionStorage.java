@@ -50,4 +50,8 @@ public class CommissionStorage {
         return commission.getId();
     }
 
+    public void saveAll(List<CommissionEntity> commissions) {
+        commissionRepository.saveAll(commissions);
+    }
+
 }

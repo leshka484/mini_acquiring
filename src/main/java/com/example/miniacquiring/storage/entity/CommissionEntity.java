@@ -33,10 +33,10 @@ public class CommissionEntity {
     @JoinColumn(name = "operation_id", nullable = false, unique = true)
     private OperationEntity operation;
 
-    @Column(nullable = false, name = "total_commission")
+    @Column(name = "total_commission", nullable = false)
     private BigDecimal totalCommission;
 
-    @Column(nullable = false, name = "processed_at")
+    @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;
 
 }

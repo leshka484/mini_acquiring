@@ -3,7 +3,9 @@ package com.example.miniacquiring.service.commisstionStrategy;
 import com.example.miniacquiring.core.Const;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.springframework.stereotype.Component;
 
+@Component
 public class PercentageCommissionStrategy implements CommissionStrategy {
 
     public String getType() {
