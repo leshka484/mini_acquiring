@@ -40,10 +40,6 @@ public class OperationStorage {
         operationRepository.deleteAllById(ids);
     }
 
-    public void deleteById(Long id) {
-        operationRepository.deleteById(id);
-    }
-
     public Long countMerchantOperations(Long merchantId) {
         return operationRepository.countMerchantOperations(merchantId);
     }

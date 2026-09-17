@@ -22,10 +22,6 @@ public class MerchantStorage {
         merchantRepository.deleteAllById(ids);
     }
 
-    public void deleteById(Long id) {
-        merchantRepository.deleteById(id);
-    }
-
     public Page<MerchantEntity> getFilteredMerchants(MerchantFilter filter, Pageable pageable) {
         return merchantRepository.findAll(MerchantSpecification.filter(filter), pageable);
     }

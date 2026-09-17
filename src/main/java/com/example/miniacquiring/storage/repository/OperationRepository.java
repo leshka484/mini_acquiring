@@ -50,13 +50,6 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
     @Modifying
     @Query("""
                 DELETE FROM OperationEntity oe
-                WHERE oe.id = :id
-            """)
-    void deleteById(@NonNull Long id);
-
-    @Modifying
-    @Query("""
-                DELETE FROM OperationEntity oe
                 WHERE oe.id IN :ids
             """)
     void deleteAllById(List<Long> ids);

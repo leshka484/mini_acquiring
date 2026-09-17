@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class PercentageCommissionStrategy implements CommissionStrategy {
 
-    public String getType() {
-        return Const.PERCENTAGE_COMMISSION;
-    }
-
     public BigDecimal calculate(BigDecimal operationSum, BigDecimal commissionValue) {
         return operationSum
                 .multiply(commissionValue)

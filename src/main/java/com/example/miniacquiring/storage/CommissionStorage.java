@@ -25,10 +25,6 @@ public class CommissionStorage {
         commissionRepository.deleteAllById(ids);
     }
 
-    public void deleteById(Long id) {
-        commissionRepository.deleteById(id);
-    }
-
     public Long countMerchantCommissions(Long merchantId) {
         return commissionRepository.countMerchantCommissions(merchantId);
     }
@@ -43,11 +39,6 @@ public class CommissionStorage {
 
     public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
         return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
-    }
-
-    public Long save(CommissionEntity commission) {
-        commissionRepository.save(commission);
-        return commission.getId();
     }
 
     public void saveAll(List<CommissionEntity> commissions) {

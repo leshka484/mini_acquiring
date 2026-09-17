@@ -40,14 +40,7 @@ public interface MerchantControllerDoc {
 
     @Operation(summary = "Delete many merchants by their ids")
     @ApiResponse(responseCode = "204", description = "Merchants successfully deleted")
-    @ApiResponse(responseCode = "404", description = "Merchants not found")
     @DeleteMapping
-    public void delete(@Valid @RequestBody DeleteMerchantRequest request);
-
-    @Operation(summary = "Delete merchant by id")
-    @ApiResponse(responseCode = "204", description = "Merchant successfully deleted")
-    @ApiResponse(responseCode = "404", description = "Merchant not found")
-    @DeleteMapping("/{id}")
-    public void delete(Long id);
+    public void deleteById(@Valid @RequestBody DeleteMerchantRequest request);
 
 }

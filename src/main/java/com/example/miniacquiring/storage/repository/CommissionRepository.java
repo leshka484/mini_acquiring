@@ -23,13 +23,6 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
     @Modifying
     @Query("""
                 DELETE FROM CommissionEntity ce
-                WHERE ce.id = :id
-            """)
-    void deleteById(@NonNull Long id);
-
-    @Modifying
-    @Query("""
-                DELETE FROM CommissionEntity ce
                 WHERE ce.id IN :ids
             """)
     void deleteAllById(List<Long> ids);

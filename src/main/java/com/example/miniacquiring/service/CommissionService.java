@@ -32,9 +32,7 @@ public class CommissionService {
     private final FixedCommissionStrategy fixedCommissionStrategy;
 
     @Transactional
-    @Scheduled(
-            initialDelayString = "0",
-            fixedDelayString = "${commission.scheduler.delay}")
+    @Scheduled(cron = "${commission.scheduler.cron}")
     public void processCommissions() {
         log.info("Processing commissions");
         var paidOperations = operationStorage.findPaid();
@@ -42,9 +40,7 @@ public class CommissionService {
             log.info("No paid operations found. Nothing to process.");
             return;
         }
-        var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
-        commissionStorage.saveAll(commissions);
-        operationStorage.completeAllPaid();
+        processPaidOperations(paidOperations);
     }
 
     public GetCommissionResponse getById(Long id) {
@@ -62,9 +58,10 @@ public class CommissionService {
         commissionStorage.deleteById(ids);
     }
 
-    public void deleteById(Long id) {
-        log.info("Deleting commission with id = {}", id);
-        commissionStorage.deleteById(id);
+    private void processPaidOperations(List<OperationEntity> paidOperations) {
+        var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
+        commissionStorage.saveAll(commissions);
+        operationStorage.completeAllPaid();
     }
 
     private CommissionEntity createCommissionEntity(OperationEntity operation, BigDecimal totalCommission) {

@@ -1,8 +1,9 @@
 package com.example.miniacquiring.web;
 
-import com.example.miniacquiring.core.dto.UpsertOperationRequest;
+import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.dto.DeleteOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.service.OperationService;
 import com.example.miniacquiring.web.doc.OperationControllerDoc;
 import jakarta.validation.Valid;
@@ -39,7 +40,7 @@ public class OperationController implements OperationControllerDoc {
     @GetMapping
     public Page<GetOperationResponse> getAll(
             @ParameterObject
-            @PageableDefault(size = 20) Pageable pageable) {
+            @PageableDefault(size = Const.PER_PAGE) Pageable pageable) {
         return operationService.getAll(pageable);
     }
 
@@ -49,13 +50,8 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @DeleteMapping
-    public void delete(@Valid @RequestBody DeleteOperationRequest request) {
+    public void deleteById(@Valid @RequestBody DeleteOperationRequest request) {
         operationService.deleteById(request.ids());
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(Long id) {
-        operationService.deleteById(id);
     }
 
 }

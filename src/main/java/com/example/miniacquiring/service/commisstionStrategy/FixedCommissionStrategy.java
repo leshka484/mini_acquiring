@@ -7,10 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class FixedCommissionStrategy implements CommissionStrategy {
 
-    public String getType() {
-        return Const.FIXED_COMMISSION;
-    }
-
     public BigDecimal calculate(BigDecimal operationSum, BigDecimal commissionValue) {
         return commissionValue;
     }

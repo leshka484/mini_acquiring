@@ -42,14 +42,7 @@ public interface OperationControllerDoc {
 
     @Operation(summary = "Delete many operations by their ids")
     @ApiResponse(responseCode = "204", description = "Operations successfully deleted")
-    @ApiResponse(responseCode = "404", description = "Operation not found")
     @DeleteMapping
-    public void delete(@Valid @RequestBody DeleteOperationRequest request);
-
-    @Operation(summary = "Delete operation by id")
-    @ApiResponse(responseCode = "204", description = "Operation successfully deleted")
-    @ApiResponse(responseCode = "404", description = "Operation not found")
-    @DeleteMapping("/{id}")
-    public void delete(Long id);
+    public void deleteById(@Valid @RequestBody DeleteOperationRequest request);
 
 }

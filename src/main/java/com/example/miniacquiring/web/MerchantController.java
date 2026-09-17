@@ -47,13 +47,8 @@ public class MerchantController implements MerchantControllerDoc {
     }
 
     @DeleteMapping
-    public void delete(@Valid @RequestBody DeleteMerchantRequest request) {
+    public void deleteById(@Valid @RequestBody DeleteMerchantRequest request) {
         merchantService.deleteById(request.ids());
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(Long id) {
-        merchantService.deleteById(id);
     }
 
 }

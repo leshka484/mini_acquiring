@@ -6,9 +6,7 @@ import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
-import com.example.miniacquiring.storage.OperationStatusStorage;
 import com.example.miniacquiring.storage.OperationStorage;
-import com.example.miniacquiring.storage.OperationTypeStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -26,8 +24,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class OperationService {
 
     private final OperationStorage operationStorage;
-    private final OperationTypeStorage operationTypeStorage;
-    private final OperationStatusStorage operationStatusStorage;
+    private final OperationTypeService operationTypeService;
+    private final OperationStatusService operationStatusService;
     private final MerchantStorage merchantStorage;
     private final DtoMapper dtoMapper;
 
@@ -67,14 +65,9 @@ public class OperationService {
         operationStorage.deleteById(ids);
     }
 
-    public void deleteById(Long id) {
-        log.info("Deleting operation");
-        operationStorage.deleteById(id);
-    }
-
     private void createOperationEntity(UpsertOperationRequest request) {
-        var type = operationTypeStorage.findById(request.typeId());
-        var status = operationStatusStorage.findById(request.statusId());
+        var type = operationTypeService.getById(request.typeId());
+        var status = operationStatusService.getById(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
         var operation = OperationEntity
                 .builder()
@@ -89,8 +82,8 @@ public class OperationService {
     }
 
     private void updateOperationEntity(Long id, UpsertOperationRequest request) {
-        var type = operationTypeStorage.findById(request.typeId());
-        var status = operationStatusStorage.findById(request.statusId());
+        var type = operationTypeService.getById(request.typeId());
+        var status = operationStatusService.getById(request.statusId());
         var operation = OperationEntity
                 .builder()
                 .id(id)
