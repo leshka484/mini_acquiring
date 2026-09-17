@@ -8,6 +8,10 @@ import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
+import com.example.miniacquiring.storage.entity.OperationStatusEntity;
+import com.example.miniacquiring.storage.entity.OperationTypeEntity;
+import com.example.miniacquiring.storage.repository.OperationStatusRepository;
+import com.example.miniacquiring.storage.repository.OperationTypeRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,8 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class OperationService {
 
     private final OperationStorage operationStorage;
-    private final OperationTypeService operationTypeService;
-    private final OperationStatusService operationStatusService;
+    private final OperationTypeRepository operationTypeRepository;
+    private final OperationStatusRepository operationStatusRepository;
     private final MerchantStorage merchantStorage;
     private final DtoMapper dtoMapper;
 
@@ -66,8 +70,8 @@ public class OperationService {
     }
 
     private void createOperationEntity(UpsertOperationRequest request) {
-        var type = operationTypeService.getById(request.typeId());
-        var status = operationStatusService.getById(request.statusId());
+        var type = getOperationType(request.typeId());
+        var status = getOperationStatus(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
         var operation = OperationEntity
                 .builder()
@@ -82,8 +86,8 @@ public class OperationService {
     }
 
     private void updateOperationEntity(Long id, UpsertOperationRequest request) {
-        var type = operationTypeService.getById(request.typeId());
-        var status = operationStatusService.getById(request.statusId());
+        var type = getOperationType(request.typeId());
+        var status = getOperationStatus(request.statusId());
         var operation = OperationEntity
                 .builder()
                 .id(id)
@@ -93,6 +97,18 @@ public class OperationService {
                 .processedAt(request.processedAt())
                 .build();
         operationStorage.save(operation);
+    }
+
+    private OperationStatusEntity getOperationStatus(Long id) {
+        return operationStatusRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Operation status with id = %d not found".formatted(id))
+        );
+    }
+
+    private OperationTypeEntity getOperationType(Long id) {
+        return operationTypeRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Operation type with id = %d not found".formatted(id))
+        );
     }
 
 }
