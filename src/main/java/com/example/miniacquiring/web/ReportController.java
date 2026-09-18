@@ -3,6 +3,7 @@ package com.example.miniacquiring.web;
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.dto.GetMerchantReportResponse;
 import com.example.miniacquiring.service.ReportService;
+import com.example.miniacquiring.web.doc.ReportControllerDoc;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/report")
 @RequiredArgsConstructor
-public class ReportController {
+public class ReportController implements ReportControllerDoc {
 
     private final ReportService reportService;
 

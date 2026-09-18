@@ -12,3 +12,13 @@ spring:
       ddl-auto: none
     show-sql: true
     open-in-view: false
+
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+
+commission:
+  scheduler:
+    cron: "0 0 * * * *"

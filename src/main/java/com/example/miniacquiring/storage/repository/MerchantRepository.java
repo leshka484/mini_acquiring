@@ -30,13 +30,6 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long>,
     @Modifying
     @Query("""
                 DELETE FROM MerchantEntity me
-                WHERE me.id = :id
-            """)
-    void deleteById(@NonNull Long id);
-
-    @Modifying
-    @Query("""
-                DELETE FROM MerchantEntity me
                 WHERE me.id IN :ids
             """)
     void deleteAllById(List<Long> ids);

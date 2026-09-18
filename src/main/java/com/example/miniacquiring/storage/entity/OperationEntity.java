@@ -36,7 +36,7 @@ public class OperationEntity {
     @JoinColumn(name = "status_id", nullable = false)
     private OperationStatusEntity status;
 
-    @Column(nullable = false)
+    @Column(name = "sum", nullable = false)
     private BigDecimal sum;
 
     @ManyToOne
@@ -46,7 +46,7 @@ public class OperationEntity {
     @Column(name = "parent_id")
     private Long parentId;
 
-    @Column(nullable = false, name = "created_at")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "processed_at")

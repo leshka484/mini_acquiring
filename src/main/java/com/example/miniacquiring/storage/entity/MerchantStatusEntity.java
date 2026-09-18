@@ -18,9 +18,10 @@ public class MerchantStatusEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private String status;
 
 }

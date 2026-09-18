@@ -1,6 +1,8 @@
 package com.example.miniacquiring.storage;
 
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
+import com.example.miniacquiring.core.exception.EntityNotFoundException;
+import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.repository.CommissionRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -13,12 +15,14 @@ public class CommissionStorage {
 
     private final CommissionRepository commissionRepository;
 
-    public void deleteById(List<Long> ids) {
-        commissionRepository.deleteAllById(ids);
+    public CommissionEntity getById(Long id) {
+        return commissionRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Commission with id = %d not found".formatted(id))
+        );
     }
 
-    public void deleteById(Long id) {
-        commissionRepository.deleteById(id);
+    public void deleteById(List<Long> ids) {
+        commissionRepository.deleteAllById(ids);
     }
 
     public Long countMerchantCommissions(Long merchantId) {
@@ -35,6 +39,10 @@ public class CommissionStorage {
 
     public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
         return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
+    }
+
+    public void saveAll(List<CommissionEntity> commissions) {
+        commissionRepository.saveAll(commissions);
     }
 
 }

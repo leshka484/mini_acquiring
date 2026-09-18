@@ -3,15 +3,17 @@ package com.example.miniacquiring.service;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.MerchantFilter;
-import com.example.miniacquiring.core.dto.MerchantRequest;
+import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.MerchantNotActiveException;
 import com.example.miniacquiring.core.exception.NotFoundException;
-import com.example.miniacquiring.storage.CommissionTypeStorage;
-import com.example.miniacquiring.storage.MerchantStatusStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
+import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
+import com.example.miniacquiring.storage.entity.MerchantStatusEntity;
+import com.example.miniacquiring.storage.repository.CommissionTypeRepository;
+import com.example.miniacquiring.storage.repository.MerchantStatusRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +27,11 @@ import org.springframework.stereotype.Service;
 public class MerchantService {
 
     private final MerchantStorage merchantStorage;
-    private final CommissionTypeStorage commissionTypeStorage;
-    private final MerchantStatusStorage merchantStatusStorage;
+    private final CommissionTypeRepository commissionTypeRepository;
+    private final MerchantStatusRepository merchantStatusRepository;
     private final DtoMapper dtoMapper;
 
-    public void create(MerchantRequest request) {
+    public void create(UpsertMerchantRequest request) {
         try {
             log.info("Creating merchant");
             createMerchantEntity(request);
@@ -38,11 +40,10 @@ public class MerchantService {
         }
     }
 
-    public GetMerchantResponse getById(Long id) {
+    public MerchantEntity getById(Long id) {
         try {
             log.info("Trying to find merchant with id = {}", id);
-            var merchant = merchantStorage.findById(id);
-            return dtoMapper.toResponse(merchant);
+            return merchantStorage.findById(id);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
@@ -54,7 +55,7 @@ public class MerchantService {
                 .map(dtoMapper::toResponse);
     }
 
-    public void update(Long id, MerchantRequest request) {
+    public void update(Long id, UpsertMerchantRequest request) {
         try {
             log.info("Updating merchant {}", request.name());
             merchantStorage.isActive(id);
@@ -69,14 +70,9 @@ public class MerchantService {
         merchantStorage.deleteById(ids);
     }
 
-    public void deleteById(Long id) {
-        log.info("Deleting merchant");
-        merchantStorage.deleteById(id);
-    }
-
-    private void updateMerchantEntity(Long id, MerchantRequest request) {
-        var type = commissionTypeStorage.findById(request.commissionTypeId());
-        var status = merchantStatusStorage.findById(request.statusId());
+    private void updateMerchantEntity(Long id, UpsertMerchantRequest request) {
+        var type = getCommissionType(request.commissionTypeId());
+        var status = getMerchantStatus(request.statusId());
         var merchant = MerchantEntity
                 .builder()
                 .id(id)
@@ -88,9 +84,9 @@ public class MerchantService {
         merchantStorage.save(merchant);
     }
 
-    private void createMerchantEntity(MerchantRequest request) {
-        var type = commissionTypeStorage.findById(request.commissionTypeId());
-        var status = merchantStatusStorage.findById(request.statusId());
+    private void createMerchantEntity(UpsertMerchantRequest request) {
+        var type = getCommissionType(request.commissionTypeId());
+        var status = getMerchantStatus(request.statusId());
         var merchant = MerchantEntity
                 .builder()
                 .name(request.name())
@@ -99,6 +95,18 @@ public class MerchantService {
                 .status(status)
                 .build();
         merchantStorage.save(merchant);
+    }
+
+    private CommissionTypeEntity getCommissionType(Long id) {
+        return commissionTypeRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Commission type with id = %d not found".formatted(id))
+        );
+    }
+
+    private MerchantStatusEntity getMerchantStatus(Long id) {
+        return merchantStatusRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Operation status with id = %d not found".formatted(id))
+        );
     }
 
 }

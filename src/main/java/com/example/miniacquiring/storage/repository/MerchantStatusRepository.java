@@ -1,13 +1,12 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.MerchantStatusEntity;
-import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface MerchantStatusRepository extends JpaRepository<MerchantStatusEntity, Long>{
+public interface MerchantStatusRepository extends JpaRepository<MerchantStatusEntity, Long> {
 
     @Query("""
             SELECT CASE WHEN COUNT(mse) > 0 THEN true ELSE false END
@@ -23,4 +22,5 @@ public interface MerchantStatusRepository extends JpaRepository<MerchantStatusEn
                 WHERE mse.id = :id
             """)
     Optional<MerchantStatusEntity> findById(@NonNull Long id);
+
 }

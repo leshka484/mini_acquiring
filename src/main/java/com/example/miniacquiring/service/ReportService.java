@@ -3,7 +3,6 @@ package com.example.miniacquiring.service;
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.dto.GetMerchantReportResponse;
 import com.example.miniacquiring.storage.CommissionStorage;
-import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +14,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class ReportService {
 
-    private final MerchantStorage merchantStorage;
     private final OperationStorage operationStorage;
     private final CommissionStorage commissionStorage;
+    private final MerchantService merchantService;
 
     public GetMerchantReportResponse getMerchantFullReport(Long merchantId) {
         log.info("Getting full report by merchant id = {}", merchantId);
@@ -30,7 +29,7 @@ public class ReportService {
     }
 
     private GetMerchantReportResponse buildFullReport(Long merchantId) {
-        var merchant = merchantStorage.findById(merchantId);
+        var merchant = merchantService.getById(merchantId);
         Long operationsCount = operationStorage.countMerchantOperations(merchantId);
         Long commissionsCount = commissionStorage.countMerchantCommissions(merchantId);
         BigDecimal sumOperations = operationStorage.sumMerchantOperations(merchantId);
@@ -47,7 +46,7 @@ public class ReportService {
     }
 
     private GetMerchantReportResponse buildTimeReport(Long merchantId, CreateMerchantReportRequest request) {
-        var merchant = merchantStorage.findById(merchantId);
+        var merchant = merchantService.getById(merchantId);
         Long operationsCount = operationStorage.countMerchantOperationsBetween(merchantId, request);
         Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(merchantId, request);
         BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(merchantId, request);
@@ -61,7 +60,6 @@ public class ReportService {
                 .commissionsCount(commissionsCount)
                 .sumCommissions(sumCommissions)
                 .build();
-
     }
 
 }
