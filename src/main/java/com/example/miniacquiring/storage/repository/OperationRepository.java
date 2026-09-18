@@ -2,6 +2,7 @@ package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.core.OperationStatusEnum;
 import com.example.miniacquiring.storage.entity.OperationEntity;
+import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +47,15 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
                             WHERE ose.code = :paidCode)
             """)
     void completeAllPaid(OperationStatusEnum paidCode, OperationStatusEnum completedCode);
+
+    @Modifying
+    @Query("""
+                UPDATE OperationEntity oe
+                SET oe.status = :status,
+                    oe.processedAt = :processedAt
+                WHERE oe.id = :id
+            """)
+    void processOperation(Long id, OperationStatusEntity status, LocalDateTime processedAt);
 
     @Modifying
     @Query("""

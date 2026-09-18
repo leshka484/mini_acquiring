@@ -12,6 +12,7 @@ import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import com.example.miniacquiring.storage.entity.OperationTypeEntity;
 import com.example.miniacquiring.storage.repository.OperationStatusRepository;
 import com.example.miniacquiring.storage.repository.OperationTypeRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -52,6 +53,15 @@ public class OperationService {
         log.info("Getting all operations");
         var operations = operationStorage.findAll(pageable);
         return operations.map(dtoMapper::toResponse);
+    }
+
+    @Transactional
+    public void processOperation(Long id) {
+        try {
+            operationStorage.processOperation(id);
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
+        }
     }
 
     public void update(Long id, UpsertOperationRequest request) {

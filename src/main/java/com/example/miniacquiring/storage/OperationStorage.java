@@ -4,8 +4,11 @@ import com.example.miniacquiring.core.OperationStatusEnum;
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.OperationEntity;
+import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import com.example.miniacquiring.storage.repository.OperationRepository;
+import com.example.miniacquiring.storage.repository.OperationStatusRepository;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class OperationStorage {
 
     private final OperationRepository operationRepository;
+    private final OperationStatusRepository operationStatusRepository;
 
     public OperationEntity findById(Long id) {
         return operationRepository.findById(id).orElseThrow(
@@ -30,6 +34,14 @@ public class OperationStorage {
 
     public void completeAllPaid() {
         operationRepository.completeAllPaid(OperationStatusEnum.PAID, OperationStatusEnum.COMPLETED);
+    }
+
+    public void processOperation(Long id) {
+        var operation = findById(id);
+        var status = findPaidStatus();
+        if (operation.getStatus().getCode() == OperationStatusEnum.NEW) {
+            operationRepository.processOperation(id, status, LocalDateTime.now());
+        }
     }
 
     public Page<OperationEntity> findAll(Pageable pageable) {
@@ -59,6 +71,13 @@ public class OperationStorage {
     public Long save(OperationEntity operation) {
         operationRepository.save(operation);
         return operation.getId();
+    }
+
+    public OperationStatusEntity findPaidStatus() {
+        var code = OperationStatusEnum.PAID;
+        return operationStatusRepository.findByCode(code).orElseThrow(
+                () -> new EntityNotFoundException("No operation status with code = %s".formatted(code))
+        );
     }
 
 }

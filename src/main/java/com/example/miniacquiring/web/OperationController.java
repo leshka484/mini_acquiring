@@ -32,6 +32,11 @@ public class OperationController implements OperationControllerDoc {
         operationService.create(request);
     }
 
+    @PostMapping("/{id}/pay")
+    public void update(Long id) {
+        operationService.processOperation(id);
+    }
+
     @GetMapping("/{id}")
     public GetOperationResponse getById(Long id) {
         return operationService.getById(id);
