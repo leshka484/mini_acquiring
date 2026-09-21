@@ -2,6 +2,7 @@ package com.example.miniacquiring.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public record GetCommissionResponse(
 
@@ -12,6 +13,9 @@ public record GetCommissionResponse(
         Long operation,
 
         @JsonProperty("total_commission")
-        BigDecimal totalCommission) {
+        BigDecimal totalCommission,
+
+        @JsonProperty("processed_at")
+        LocalDateTime processedAt) {
 
 }

@@ -1,5 +1,6 @@
 package com.example.miniacquiring.web;
 
+import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.service.CommissionService;
 import com.example.miniacquiring.web.doc.CommissionControllerDoc;
@@ -16,10 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CommissionController implements CommissionControllerDoc {
 
     private final CommissionService commissionService;
+    private final DtoMapper dtoMapper;
 
     @GetMapping("/{id}")
     public GetCommissionResponse getById(Long id) {
-        return commissionService.getById(id);
+        return dtoMapper.toResponse(commissionService.getById(id));
     }
 
     @DeleteMapping

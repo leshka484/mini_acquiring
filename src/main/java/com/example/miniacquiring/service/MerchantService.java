@@ -58,7 +58,6 @@ public class MerchantService {
     public void update(Long id, UpsertMerchantRequest request) {
         try {
             log.info("Updating merchant {}", request.name());
-            merchantStorage.isActive(id);
             updateMerchantEntity(id, request);
         } catch (MerchantNotActiveException exception) {
             throw new ForbiddenException(exception.getMessage());
@@ -71,17 +70,17 @@ public class MerchantService {
     }
 
     private void updateMerchantEntity(Long id, UpsertMerchantRequest request) {
+        merchantStorage.isActive(id);
         var type = getCommissionType(request.commissionTypeId());
         var status = getMerchantStatus(request.statusId());
-        var merchant = MerchantEntity
-                .builder()
-                .id(id)
+        var merchant = getById(id);
+        var updated = merchant.toBuilder()
                 .name(request.name())
                 .commissionValue(request.commissionValue())
                 .commissionType(type)
                 .status(status)
                 .build();
-        merchantStorage.save(merchant);
+        merchantStorage.save(updated);
     }
 
     private void createMerchantEntity(UpsertMerchantRequest request) {
@@ -105,7 +104,7 @@ public class MerchantService {
 
     private MerchantStatusEntity getMerchantStatus(Long id) {
         return merchantStatusRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Operation status with id = %d not found".formatted(id))
+                () -> new EntityNotFoundException("Merchant status with id = %d not found".formatted(id))
         );
     }
 

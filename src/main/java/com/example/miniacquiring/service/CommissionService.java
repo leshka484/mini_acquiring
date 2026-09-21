@@ -2,7 +2,6 @@ package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.DtoMapper;
-import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.commisstionStrategy.FixedCommissionStrategy;
@@ -43,10 +42,10 @@ public class CommissionService {
         processPaidOperations(paidOperations);
     }
 
-    public GetCommissionResponse getById(Long id) {
+    public CommissionEntity getById(Long id) {
         try {
             log.info("Trying to find commission with id = {}", id);
-            return dtoMapper.toResponse(commissionStorage.getById(id));
+            return commissionStorage.getById(id);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
@@ -80,7 +79,7 @@ public class CommissionService {
             var strategy = switch (type) {
                 case Const.PERCENTAGE_COMMISSION -> percentageCommissionStrategy;
                 case Const.FIXED_COMMISSION -> fixedCommissionStrategy;
-                default -> throw new IllegalStateException("No strategy for commission type" + type);
+                default -> throw new IllegalStateException("No strategy for commission type " + type);
             };
             BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
             return createCommissionEntity(operation, totalCommission);

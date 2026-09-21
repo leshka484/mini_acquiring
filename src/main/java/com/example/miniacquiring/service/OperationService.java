@@ -39,11 +39,10 @@ public class OperationService {
         createOperationEntity(request);
     }
 
-    public GetOperationResponse getById(Long id) {
+    public OperationEntity getById(Long id) {
         try {
             log.info("Trying to find operation with id = {}", id);
-            var operation = operationStorage.findById(id);
-            return dtoMapper.toResponse(operation);
+            return operationStorage.findById(id);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
@@ -98,15 +97,14 @@ public class OperationService {
     private void updateOperationEntity(Long id, UpsertOperationRequest request) {
         var type = getOperationType(request.typeId());
         var status = getOperationStatus(request.statusId());
-        var operation = OperationEntity
-                .builder()
-                .id(id)
+        var operation = getById(id);
+        var updated = operation.toBuilder()
                 .status(status)
                 .type(type)
                 .parentId(request.parentId())
                 .processedAt(request.processedAt())
                 .build();
-        operationStorage.save(operation);
+        operationStorage.save(updated);
     }
 
     private OperationStatusEntity getOperationStatus(Long id) {
