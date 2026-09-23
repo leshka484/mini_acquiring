@@ -2,8 +2,12 @@ package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.dto.GetMerchantReportResponse;
+import com.example.miniacquiring.core.exception.EntityNotFoundException;
+import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.CommissionStorage;
+import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
+import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +20,7 @@ public class ReportService {
 
     private final OperationStorage operationStorage;
     private final CommissionStorage commissionStorage;
-    private final MerchantService merchantService;
+    private final MerchantStorage merchantStorage;
 
     public GetMerchantReportResponse getMerchantFullReport(Long merchantId) {
         log.info("Getting full report by merchant id = {}", merchantId);
@@ -28,12 +32,12 @@ public class ReportService {
         return buildTimeReport(merchantId, request);
     }
 
-    private GetMerchantReportResponse buildFullReport(Long merchantId) {
-        var merchant = merchantService.getById(merchantId);
-        Long operationsCount = operationStorage.countMerchantOperations(merchantId);
-        Long commissionsCount = commissionStorage.countMerchantCommissions(merchantId);
-        BigDecimal sumOperations = operationStorage.sumMerchantOperations(merchantId);
-        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissions(merchantId);
+    private GetMerchantReportResponse buildFullReport(Long id) {
+        var merchant = getMerchant(id);
+        Long operationsCount = operationStorage.countMerchantOperations(id);
+        Long commissionsCount = commissionStorage.countMerchantCommissions(id);
+        BigDecimal sumOperations = operationStorage.sumMerchantOperations(id);
+        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissions(id);
         return GetMerchantReportResponse
                 .builder()
                 .merchantId(merchant.getId())
@@ -45,12 +49,12 @@ public class ReportService {
                 .build();
     }
 
-    private GetMerchantReportResponse buildTimeReport(Long merchantId, CreateMerchantReportRequest request) {
-        var merchant = merchantService.getById(merchantId);
-        Long operationsCount = operationStorage.countMerchantOperationsBetween(merchantId, request);
-        Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(merchantId, request);
-        BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(merchantId, request);
-        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissionsBetween(merchantId, request);
+    private GetMerchantReportResponse buildTimeReport(Long id, CreateMerchantReportRequest request) {
+        var merchant = getMerchant(id);
+        Long operationsCount = operationStorage.countMerchantOperationsBetween(id, request);
+        Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(id, request);
+        BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(id, request);
+        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissionsBetween(id, request);
         return GetMerchantReportResponse
                 .builder()
                 .merchantId(merchant.getId())
@@ -60,6 +64,14 @@ public class ReportService {
                 .commissionsCount(commissionsCount)
                 .sumCommissions(sumCommissions)
                 .build();
+    }
+
+    private MerchantEntity getMerchant(Long id) {
+        try {
+            return merchantStorage.findById(id);
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
+        }
     }
 
 }

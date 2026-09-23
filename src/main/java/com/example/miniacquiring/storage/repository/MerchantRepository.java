@@ -1,5 +1,6 @@
 package com.example.miniacquiring.storage.repository;
 
+import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
@@ -35,10 +36,10 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long>,
     void deleteAllById(List<Long> ids);
 
     @Query("""
-            SELECT me.status.status = 'ACTIVE'
+            SELECT me.status.name = :status
             FROM MerchantEntity me
             WHERE me.id = :id
             """)
-    boolean isActive(Long id);
+    boolean isActive(Long id, MerchantStatus status);
 
 }

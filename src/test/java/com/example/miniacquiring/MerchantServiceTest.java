@@ -1,13 +1,14 @@
 package com.example.miniacquiring;
 
-import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.MerchantFilter;
 import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
+import com.example.miniacquiring.core.enums.CommissionType;
+import com.example.miniacquiring.core.enums.MerchantStatus;
+import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
-import com.example.miniacquiring.core.exception.MerchantNotActiveException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.MerchantService;
 import com.example.miniacquiring.storage.MerchantStorage;
@@ -33,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -115,7 +115,7 @@ public class MerchantServiceTest {
     void getById_shouldReturnMerchant() {
         var merchant = createMerchantEntity();
         when(merchantStorage.findById(merchant.getId())).thenReturn(merchant);
-        var actualMerchant = merchantService.getById(merchant.getId());
+        var actualMerchant = merchantService.getMerchantEntityById(merchant.getId());
         assertThat(actualMerchant).isSameAs(merchant);
         verify(merchantStorage).findById(merchant.getId());
     }
@@ -126,29 +126,30 @@ public class MerchantServiceTest {
         var message = "Merchant with id = %d not found".formatted(id);
         when(merchantStorage.findById(id))
                 .thenThrow(new EntityNotFoundException(message));
-        assertThatThrownBy(() -> merchantService.getById(id))
+        assertThatThrownBy(() -> merchantService.getMerchantEntityById(id))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(merchantStorage).findById(id);
     }
 
     @Test
-    void getFilteredMerchants_shouldReturnMappedPage() {
+    void getFilteredMerchants_shouldReturnMerchantResponsePage() {
         var filter = new MerchantFilter(
                 1L,
                 "test",
                 1L,
                 1L,
                 new BigDecimal("9.00"),
-                new BigDecimal("11.00"));
+                new BigDecimal("11.00")
+        );
         var merchant = createMerchantEntity();
+        var response = createMerchantResponse();
         var pageable = PageRequest.of(0, 20);
         var merchantPage = new PageImpl<>(
                 List.of(merchant),
                 pageable,
                 1
         );
-        var response = mock(GetMerchantResponse.class);
         when(merchantStorage.getFilteredMerchants(filter, pageable)).thenReturn(merchantPage);
         when(dtoMapper.toResponse(merchant)).thenReturn(response);
         var actualPage = merchantService.getFilteredMerchants(filter, pageable);
@@ -175,7 +176,7 @@ public class MerchantServiceTest {
         when(merchantStatusRepository.findById(request.statusId()))
                 .thenReturn(Optional.of(merchantStatus));
         merchantService.update(id, request);
-        verify(merchantStorage).isActive(id);
+        verify(merchantStorage).isActive(id, MerchantStatus.ACTIVE);
         verify(commissionTypeRepository).findById(request.commissionTypeId());
         verify(merchantStatusRepository).findById(request.statusId());
         verify(merchantStorage).save(merchantCaptor.capture());
@@ -194,14 +195,14 @@ public class MerchantServiceTest {
         var request = createUpsertRequest();
         var message = "Merchant with id = %d is not active".formatted(id);
 
-        doThrow(new MerchantNotActiveException(message))
+        doThrow(new EntityNotActiveException(message))
                 .when(merchantStorage)
-                .isActive(id);
+                .isActive(id, MerchantStatus.ACTIVE);
         assertThatThrownBy(
                 () -> merchantService.update(id, request))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage(message);
-        verify(merchantStorage).isActive(id);
+        verify(merchantStorage).isActive(id, MerchantStatus.ACTIVE);
         verify(merchantStorage, never()).findById(any());
         verifyNoInteractions(
                 commissionTypeRepository,
@@ -211,7 +212,7 @@ public class MerchantServiceTest {
     }
 
     @Test
-    void deleteById_shouldDeleteMerchant() {
+    void deleteById_shouldCallStorage() {
         var ids = List.of(1L, 2L, 3L);
         merchantService.deleteById(ids);
         verify(merchantStorage).deleteById(ids);
@@ -221,7 +222,7 @@ public class MerchantServiceTest {
         return CommissionTypeEntity
                 .builder()
                 .id(1L)
-                .type(Const.PERCENTAGE_COMMISSION)
+                .code(CommissionType.PERCENTAGE)
                 .build();
     }
 
@@ -229,7 +230,7 @@ public class MerchantServiceTest {
         return MerchantStatusEntity
                 .builder()
                 .id(1L)
-                .status(Const.MERCHANT_ACTIVE_STATUS)
+                .code(MerchantStatus.ACTIVE)
                 .build();
     }
 
@@ -250,6 +251,15 @@ public class MerchantServiceTest {
                 .commissionType(createCommissionType())
                 .status(createMerchantStatus())
                 .build();
+    }
+
+    private GetMerchantResponse createMerchantResponse() {
+        return new GetMerchantResponse(
+                1L,
+                "test",
+                CommissionType.PERCENTAGE.name(),
+                new BigDecimal("10.00"),
+                MerchantStatus.ACTIVE.name());
     }
 
 }

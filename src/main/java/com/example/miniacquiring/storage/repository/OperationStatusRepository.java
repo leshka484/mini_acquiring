@@ -1,6 +1,6 @@
 package com.example.miniacquiring.storage.repository;
 
-import com.example.miniacquiring.core.OperationStatusEnum;
+import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
@@ -21,7 +21,7 @@ public interface OperationStatusRepository extends JpaRepository<OperationStatus
                 FROM OperationStatusEntity ose
                 WHERE ose.code = :code
             """)
-    Optional<OperationStatusEntity> findByCode(OperationStatusEnum code);
+    Optional<OperationStatusEntity> findByCode(OperationStatus code);
 
     @NonNull
     @Query("""
