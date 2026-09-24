@@ -12,7 +12,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 public interface OperationControllerDoc {
@@ -34,11 +33,17 @@ public interface OperationControllerDoc {
     @GetMapping
     public Page<GetOperationResponse> getAll(@PageableDefault(size = 20) Pageable pageable);
 
-    @Operation(summary = "Update operation")
-    @ApiResponse(responseCode = "200", description = "Operation updated")
+    @Operation(summary = "Operation payment")
+    @ApiResponse(responseCode = "200", description = "Operation paid")
     @ApiResponse(responseCode = "404", description = "Operation not found")
-    @PutMapping("/{id}")
+    @PostMapping("/{id}/payment")
     public void update(Long id, @Valid @RequestBody UpsertOperationRequest request);
+
+    @Operation(summary = "Operation cancellation")
+    @ApiResponse(responseCode = "200", description = "Operation cancelled")
+    @ApiResponse(responseCode = "404", description = "Operation not found")
+    @PostMapping("/{id}/cancellation")
+    public void cancellation(Long id);
 
     @Operation(summary = "Delete many operations by their ids")
     @ApiResponse(responseCode = "204", description = "Operations successfully deleted")

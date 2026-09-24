@@ -4,10 +4,7 @@ import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.MerchantFilter;
 import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
-import com.example.miniacquiring.core.enums.MerchantStatus;
-import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
-import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
@@ -60,8 +57,8 @@ public class MerchantService {
         try {
             log.info("Updating merchant {}", request.name());
             updateMerchantEntity(id, request);
-        } catch (EntityNotActiveException exception) {
-            throw new ForbiddenException(exception.getMessage());
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
         }
     }
 
@@ -71,7 +68,6 @@ public class MerchantService {
     }
 
     private void updateMerchantEntity(Long id, UpsertMerchantRequest request) {
-        merchantStorage.isActive(id, MerchantStatus.ACTIVE);
         var type = getCommissionType(request.commissionTypeId());
         var status = getMerchantStatus(request.statusId());
         var merchant = getMerchantEntityById(id);

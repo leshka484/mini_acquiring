@@ -6,9 +6,7 @@ import com.example.miniacquiring.core.dto.MerchantFilter;
 import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
 import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.MerchantStatus;
-import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
-import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.MerchantService;
 import com.example.miniacquiring.storage.MerchantStorage;
@@ -33,7 +31,6 @@ import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -75,7 +72,8 @@ public class MerchantServiceTest {
         verify(merchantStorage).save(merchantCaptor.capture());
         var savedMerchant = merchantCaptor.getValue();
         assertThat(savedMerchant.getName()).isEqualTo(request.name());
-        assertThat(savedMerchant.getCommissionValue()).isEqualByComparingTo(request.commissionValue());
+        assertThat(savedMerchant.getCommissionValue())
+                .isEqualByComparingTo(request.commissionValue());
         assertThat(savedMerchant.getCommissionType()).isSameAs(commissionType);
         assertThat(savedMerchant.getStatus()).isSameAs(merchantStatus);
         assertThat(savedMerchant.getId()).isNull();
@@ -150,7 +148,8 @@ public class MerchantServiceTest {
                 pageable,
                 1
         );
-        when(merchantStorage.getFilteredMerchants(filter, pageable)).thenReturn(merchantPage);
+        when(merchantStorage.getFilteredMerchants(filter, pageable))
+                .thenReturn(merchantPage);
         when(dtoMapper.toResponse(merchant)).thenReturn(response);
         var actualPage = merchantService.getFilteredMerchants(filter, pageable);
         assertThat(actualPage.getContent()).containsExactly(response);
@@ -176,9 +175,9 @@ public class MerchantServiceTest {
         when(merchantStatusRepository.findById(request.statusId()))
                 .thenReturn(Optional.of(merchantStatus));
         merchantService.update(id, request);
-        verify(merchantStorage).isActive(id, MerchantStatus.ACTIVE);
         verify(commissionTypeRepository).findById(request.commissionTypeId());
         verify(merchantStatusRepository).findById(request.statusId());
+        verify(merchantStorage).findById(id);
         verify(merchantStorage).save(merchantCaptor.capture());
         var updatedMerchant = merchantCaptor.getValue();
         assertThat(updatedMerchant.getId()).isEqualTo(id);
@@ -190,24 +189,61 @@ public class MerchantServiceTest {
     }
 
     @Test
-    void update_shouldThrowForbiddenException_whenMerchantIsNotActive() {
+    void update_shouldThrowNotFoundException_whenCommissionTypeNotFound() {
         var id = 1L;
         var request = createUpsertRequest();
-        var message = "Merchant with id = %d is not active".formatted(id);
-
-        doThrow(new EntityNotActiveException(message))
-                .when(merchantStorage)
-                .isActive(id, MerchantStatus.ACTIVE);
-        assertThatThrownBy(
-                () -> merchantService.update(id, request))
-                .isInstanceOf(ForbiddenException.class)
+        var message = "Commission type with id = %d not found"
+                .formatted(request.commissionTypeId());
+        when(commissionTypeRepository.findById(request.commissionTypeId()))
+                .thenThrow(new EntityNotFoundException(message));
+        assertThatThrownBy(() -> merchantService.update(id, request))
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(merchantStorage).isActive(id, MerchantStatus.ACTIVE);
+        verify(commissionTypeRepository).findById(request.commissionTypeId());
+        verifyNoInteractions(merchantStatusRepository);
         verify(merchantStorage, never()).findById(any());
-        verifyNoInteractions(
-                commissionTypeRepository,
-                merchantStatusRepository
-        );
+        verify(merchantStorage, never()).save(any());
+    }
+
+    @Test
+    void update_shouldThrowNotFoundException_whenMerchantStatusNotFound() {
+        var id = 1L;
+        var request = createUpsertRequest();
+        var commissionType = createCommissionType();
+        var message = "Merchant status with id = %d not found"
+                .formatted(request.statusId());
+        when(commissionTypeRepository.findById(request.commissionTypeId()))
+                .thenReturn(Optional.of(commissionType));
+        when(merchantStatusRepository.findById(request.statusId()))
+                .thenThrow(new EntityNotFoundException(message));
+        assertThatThrownBy(() -> merchantService.update(id, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(message);
+        verify(commissionTypeRepository).findById(request.commissionTypeId());
+        verify(merchantStatusRepository).findById(request.statusId());
+        verify(merchantStorage, never()).findById(any());
+        verify(merchantStorage, never()).save(any());
+    }
+
+    @Test
+    void update_shouldThrowNotFoundException_whenMerchantNotFound() {
+        var id = 100L;
+        var request = createUpsertRequest();
+        var commissionType = createCommissionType();
+        var merchantStatus = createMerchantStatus();
+        var message = "Merchant with id = %d not found".formatted(id);
+        when(commissionTypeRepository.findById(request.commissionTypeId()))
+                .thenReturn(Optional.of(commissionType));
+        when(merchantStatusRepository.findById(request.statusId()))
+                .thenReturn(Optional.of(merchantStatus));
+        when(merchantStorage.findById(id))
+                .thenThrow(new EntityNotFoundException(message));
+        assertThatThrownBy(() -> merchantService.update(id, request))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(message);
+        verify(commissionTypeRepository).findById(request.commissionTypeId());
+        verify(merchantStatusRepository).findById(request.statusId());
+        verify(merchantStorage).findById(id);
         verify(merchantStorage, never()).save(any());
     }
 
@@ -219,19 +255,18 @@ public class MerchantServiceTest {
     }
 
     private CommissionTypeEntity createCommissionType() {
-        return CommissionTypeEntity
-                .builder()
-                .id(1L)
-                .code(CommissionType.PERCENTAGE)
-                .build();
+        return new CommissionTypeEntity(
+                1L,
+                CommissionType.PERCENTAGE,
+                "Percentage");
     }
 
     private MerchantStatusEntity createMerchantStatus() {
-        return MerchantStatusEntity
-                .builder()
-                .id(1L)
-                .code(MerchantStatus.ACTIVE)
-                .build();
+        return new MerchantStatusEntity(
+                1L,
+                MerchantStatus.ACTIVE,
+                "Active");
+
     }
 
     private UpsertMerchantRequest createUpsertRequest() {

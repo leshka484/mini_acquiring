@@ -1,6 +1,5 @@
 package com.example.miniacquiring;
 
-import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.UpsertOperationRequest;
@@ -8,10 +7,12 @@ import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.enums.OperationType;
+import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
+import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
-import com.example.miniacquiring.service.MerchantService;
 import com.example.miniacquiring.service.OperationService;
+import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
@@ -38,6 +39,7 @@ import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -57,7 +59,7 @@ public class OperationServiceTest {
     private OperationStatusRepository operationStatusRepository;
 
     @Mock
-    private MerchantService merchantService;
+    private MerchantStorage merchantStorage;
 
     @Mock
     private DtoMapper dtoMapper;
@@ -78,9 +80,14 @@ public class OperationServiceTest {
                 .thenReturn(Optional.of(operationType));
         when(operationStatusRepository.findById(request.statusId()))
                 .thenReturn(Optional.of(operationStatus));
-        when(merchantService.getMerchantEntityById(request.merchantId()))
+        when(merchantStorage.findById(request.merchantId()))
                 .thenReturn(merchant);
         operationService.create(request);
+        verify(operationTypeRepository).findById(request.typeId());
+        verify(operationStatusRepository).findById(request.statusId());
+        verify(merchantStorage).findById(request.merchantId());
+        verify(merchantStorage)
+                .isActive(request.merchantId(), MerchantStatus.ACTIVE);
         verify(operationStorage).save(operationCaptor.capture());
         var savedOperation = operationCaptor.getValue();
         assertThat(savedOperation.getMerchant()).isSameAs(merchant);
@@ -89,9 +96,6 @@ public class OperationServiceTest {
         assertThat(savedOperation.getSum()).isEqualByComparingTo(request.sum());
         assertThat(savedOperation.getParentId()).isEqualTo(request.parentId());
         assertThat(savedOperation.getCreatedAt()).isNotNull();
-        verify(operationTypeRepository).findById(request.typeId());
-        verify(operationStatusRepository).findById(request.statusId());
-        verify(merchantService).getMerchantEntityById(request.merchantId());
     }
 
     @Test
@@ -101,11 +105,11 @@ public class OperationServiceTest {
         when(operationTypeRepository.findById(request.typeId()))
                 .thenReturn(Optional.empty());
         assertThatThrownBy(() -> operationService.create(request))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(operationTypeRepository).findById(request.typeId());
         verifyNoInteractions(operationStatusRepository);
-        verifyNoInteractions(merchantService);
+        verifyNoInteractions(merchantStorage);
         verifyNoInteractions(operationStorage);
     }
 
@@ -119,11 +123,11 @@ public class OperationServiceTest {
         when(operationStatusRepository.findById(request.statusId()))
                 .thenReturn((Optional.empty()));
         assertThatThrownBy(() -> operationService.create(request))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(operationTypeRepository).findById(request.typeId());
         verify(operationStatusRepository).findById(request.statusId());
-        verifyNoInteractions(merchantService);
+        verifyNoInteractions(merchantStorage);
         verifyNoInteractions(operationStorage);
     }
 
@@ -137,14 +141,41 @@ public class OperationServiceTest {
                 .thenReturn(Optional.of(type));
         when(operationStatusRepository.findById(request.statusId()))
                 .thenReturn((Optional.of(status)));
-        when(merchantService.getMerchantEntityById(request.merchantId()))
+        when(merchantStorage.findById(request.merchantId()))
                 .thenThrow(new EntityNotFoundException(message));
         assertThatThrownBy(() -> operationService.create(request))
-                .isInstanceOf(EntityNotFoundException.class)
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(operationTypeRepository).findById(request.typeId());
         verify(operationStatusRepository).findById(request.statusId());
-        verify(merchantService).getMerchantEntityById(request.merchantId());
+        verify(merchantStorage).findById(request.merchantId());
+        verify(merchantStorage, never()).isActive(anyLong(), any());
+        verifyNoInteractions(operationStorage);
+    }
+
+    @Test
+    void create_shouldThrowForbiddenException_whenMerchantIsNotActive() {
+        var request = createUpsertRequest();
+        var type = createOperationTypeEntity();
+        var status = createOperationStatusEntity(OperationStatus.NEW);
+        var merchant = createMerchantEntity();
+        var message = "Merchant with id = %d is not active"
+                .formatted(request.merchantId());
+        when(operationTypeRepository.findById(request.typeId()))
+                .thenReturn(Optional.of(type));
+        when(operationStatusRepository.findById(request.statusId()))
+                .thenReturn(Optional.of(status));
+        when(merchantStorage.findById(request.merchantId()))
+                .thenReturn(merchant);
+        doThrow(new EntityNotActiveException(message))
+                .when(merchantStorage)
+                .isActive(request.merchantId(), MerchantStatus.ACTIVE);
+        assertThatThrownBy(() -> operationService.create(request))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage(message);
+        verify(merchantStorage).findById(request.merchantId());
+        verify(merchantStorage)
+                .isActive(request.merchantId(), MerchantStatus.ACTIVE);
         verifyNoInteractions(operationStorage);
     }
 
@@ -189,11 +220,11 @@ public class OperationServiceTest {
         when(dtoMapper.toResponse(operation1)).thenReturn(response1);
         when(dtoMapper.toResponse(operation2)).thenReturn(response2);
         var actualPage = operationService.getAll(pageable);
-        assertThat(actualPage.getContent()).containsExactly(response1, response2);
-        assertThat(actualPage.getTotalElements()).isEqualTo(2);
         verify(operationStorage).findAll(pageable);
         verify(dtoMapper).toResponse(operation1);
         verify(dtoMapper).toResponse(operation2);
+        assertThat(actualPage.getContent()).containsExactly(response1, response2);
+        assertThat(actualPage.getTotalElements()).isEqualTo(2);
     }
 
     @Test
@@ -202,11 +233,11 @@ public class OperationServiceTest {
         var paidStatus = createOperationStatusEntity(OperationStatus.PAID);
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
-        when(operationStorage.findOperationStatus(OperationStatus.PAID))
-                .thenReturn(paidStatus);
+        when(operationStatusRepository.findByCode(OperationStatus.PAID))
+                .thenReturn(Optional.of(paidStatus));
         operationService.processPayment(operation.getId());
         verify(operationStorage).findById(operation.getId());
-        verify(operationStorage).findOperationStatus(OperationStatus.PAID);
+        verify(operationStatusRepository).findByCode(OperationStatus.PAID);
         verify(operationStorage).save(operationCaptor.capture());
         var updatedOperation = operationCaptor.getValue();
         assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
@@ -222,6 +253,7 @@ public class OperationServiceTest {
         operationService.processPayment(paidOperation.getId());
         verify(operationStorage).findById(paidOperation.getId());
         verify(operationStorage, never()).save(any(OperationEntity.class));
+        verifyNoInteractions(operationStatusRepository);
     }
 
     @Test
@@ -233,50 +265,83 @@ public class OperationServiceTest {
         assertThatThrownBy(() -> operationService.processPayment(id))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(operationStorage)
-                .findById(id);
+        verify(operationStorage).findById(id);
+        verifyNoInteractions(operationStatusRepository);
+        verify(operationStorage, never())
+                .save(any(OperationEntity.class));
+    }
+
+    @Test
+    void processPayment_shouldThrowNotFoundException_whenPaidStatusNotFound() {
+        var operation = createOperationEntity(OperationStatus.NEW);
+        var message = "Operation status with code = PAID not found";
+        when(operationStorage.findById(operation.getId()))
+                .thenReturn(operation);
+        when(operationStatusRepository.findByCode(OperationStatus.PAID))
+                .thenReturn(Optional.empty());
+        assertThatThrownBy(
+                () -> operationService.processPayment(operation.getId()))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage(message);
+        verify(operationStorage).findById(operation.getId());
+        verify(operationStatusRepository).findByCode(OperationStatus.PAID);
+        verify(operationStorage, never()).save(any(OperationEntity.class));
+    }
+
+    @Test
+    void cancelOperation_shouldUpdateOperation_whenStatusIsNew() {
+        var operation = createOperationEntity(OperationStatus.NEW);
+        var failedStatus = createOperationStatusEntity(OperationStatus.FAILED);
+        when(operationStorage.findById(operation.getId()))
+                .thenReturn(operation);
+        when(operationStatusRepository.findByCode(OperationStatus.FAILED))
+                .thenReturn(Optional.of(failedStatus));
+        operationService.cancelOperation(operation.getId());
+        verify(operationStorage).findById(operation.getId());
+        verify(operationStatusRepository).findByCode(OperationStatus.FAILED);
+        verify(operationStorage).save(operationCaptor.capture());
+        var updatedOperation = operationCaptor.getValue();
+        assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
+        assertThat(updatedOperation.getStatus()).isSameAs(failedStatus);
+        assertThat(updatedOperation.getProcessedAt()).isNotNull();
     }
 
     @Test
     void update_shouldUpdateOperation() {
         var operation = createOperationEntity(OperationStatus.NEW);
         var id = operation.getId();
-        var request = new UpsertOperationRequest(
+        var updateRequest = new UpsertOperationRequest(
                 1L,
                 1L,
                 new BigDecimal("2000.00"),
                 1L,
                 null,
                 LocalDateTime.of(2026, 2, 2, 0, 0));
-        var newType = OperationTypeEntity
-                .builder()
-                .id(2L)
-                .code(OperationType.RETURN)
-                .name("Return")
-                .build();
-        var newStatus = OperationStatusEntity
-                .builder()
-                .id(2L)
-                .code(OperationStatus.PAID)
-                .name("Paid")
-                .build();
+        var newType = new OperationTypeEntity(
+                2L,
+                OperationType.RETURN,
+                "Return");
+        var newStatus = new OperationStatusEntity(
+                2L,
+                OperationStatus.PAID,
+                "Paid");
 
-        when(operationTypeRepository.findById(request.typeId()))
+        when(operationTypeRepository.findById(updateRequest.typeId()))
                 .thenReturn(Optional.of(newType));
-        when(operationStatusRepository.findById(request.statusId()))
+        when(operationStatusRepository.findById(updateRequest.statusId()))
                 .thenReturn(Optional.of(newStatus));
         when(operationStorage.findById(id)).thenReturn(operation);
-        operationService.update(id, request);
+        operationService.update(id, updateRequest);
         verify(operationStorage).save(operationCaptor.capture());
         var updatedOperation = operationCaptor.getValue();
+        verify(operationStorage).findById(id);
+        verify(operationTypeRepository).findById(updateRequest.typeId());
+        verify(operationStatusRepository).findById(updateRequest.statusId());
         assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
         assertThat(updatedOperation.getStatus()).isSameAs(newStatus);
         assertThat(updatedOperation.getType()).isSameAs(newType);
-        assertThat(updatedOperation.getParentId()).isEqualTo(request.parentId());
-        assertThat(updatedOperation.getProcessedAt()).isEqualTo(request.processedAt());
-        verify(operationStorage).findById(id);
-        verify(operationTypeRepository).findById(request.typeId());
-        verify(operationStatusRepository).findById(request.statusId());
+        assertThat(updatedOperation.getParentId()).isEqualTo(updateRequest.parentId());
+        assertThat(updatedOperation.getProcessedAt()).isEqualTo(updateRequest.processedAt());
     }
 
     @Test
@@ -365,38 +430,32 @@ public class OperationServiceTest {
     }
 
     private CommissionTypeEntity createCommissionType() {
-        return CommissionTypeEntity
-                .builder()
-                .id(1L)
-                .code(CommissionType.PERCENTAGE)
-                .name("Percentage")
-                .build();
+        return new CommissionTypeEntity(
+                1L,
+                CommissionType.PERCENTAGE,
+                "Percentage");
     }
 
     private MerchantStatusEntity createMerchantStatus() {
-        return MerchantStatusEntity
-                .builder()
-                .id(1L)
-                .code(MerchantStatus.ACTIVE)
-                .name("Active")
-                .build();
+        return new MerchantStatusEntity(
+                1L,
+                MerchantStatus.ACTIVE,
+                "Active");
     }
 
     private OperationStatusEntity createOperationStatusEntity(OperationStatus status) {
-        return OperationStatusEntity.builder()
-                .id(1L)
-                .code(status)
-                .name(status.name())
-                .build();
+        return new OperationStatusEntity(
+                1L,
+                status,
+                status.name().charAt(0) +
+                        status.name().substring(1).toLowerCase());
     }
 
     private OperationTypeEntity createOperationTypeEntity() {
-        return OperationTypeEntity
-                .builder()
-                .id(1L)
-                .code(OperationType.PAYMENT)
-                .name("Payment")
-                .build();
+        return new OperationTypeEntity(
+                1L,
+                OperationType.PAYMENT,
+                "Payment");
     }
 
     private GetOperationResponse createOperationResponse() {

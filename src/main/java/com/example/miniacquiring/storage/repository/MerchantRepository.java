@@ -36,7 +36,7 @@ public interface MerchantRepository extends JpaRepository<MerchantEntity, Long>,
     void deleteAllById(List<Long> ids);
 
     @Query("""
-            SELECT me.status.name = :status
+            SELECT me.status.code = :status
             FROM MerchantEntity me
             WHERE me.id = :id
             """)

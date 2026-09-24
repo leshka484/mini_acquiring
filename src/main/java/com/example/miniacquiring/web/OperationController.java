@@ -1,7 +1,6 @@
 package com.example.miniacquiring.web;
 
 import com.example.miniacquiring.core.Const;
-import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.DeleteOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.UpsertOperationRequest;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class OperationController implements OperationControllerDoc {
 
     private final OperationService operationService;
-    private final DtoMapper dtoMapper;
 
     @PostMapping
     public void create(@Valid @RequestBody UpsertOperationRequest request) {
@@ -35,8 +33,13 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @PostMapping("/{id}/payment")
-    public void update(Long id) {
+    public void payment(Long id) {
         operationService.processPayment(id);
+    }
+
+    @PostMapping("/{id}/cancellation")
+    public void cancellation(Long id) {
+        operationService.cancelOperation(id);
     }
 
     @GetMapping("/{id}")

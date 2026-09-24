@@ -63,19 +63,9 @@ public class CommissionServiceTest {
     private ArgumentCaptor<List<OperationEntity>> operationsCaptor;
 
     @Test
-    void processCommissions_ShouldDoNothing_whenNoPaidOperations() {
-        when(operationStorage.findByStatus(OperationStatus.PAID)).thenReturn(List.of());
-        commissionService.processCommissions();
-        verify(operationStorage).findByStatus(OperationStatus.PAID);
-        verifyNoInteractions(commissionStorage);
-        verify(operationStorage, never()).findOperationStatus(any());
-        verify(operationStorage, never()).saveAll(any());
-    }
-
-    @Test
     void processCommissions_shouldCalculateWithPercentageStrategy() {
         var operation = createOperationWithPercentageCommission();
-        var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED );
+        var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED);
         when(operationStorage.findByStatus(OperationStatus.PAID))
                 .thenReturn(List.of(operation));
         when(percentageCommissionStrategy.calculate(
@@ -107,7 +97,7 @@ public class CommissionServiceTest {
     @Test
     void processCommissions_shouldCalculateWithFixedStrategy() {
         var operation = createOperationWithFixedCommission();
-        var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED );
+        var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED);
         when(operationStorage.findByStatus(OperationStatus.PAID)).thenReturn(List.of(operation));
         when(fixedCommissionStrategy.calculate(
                 operation.getSum(),
@@ -132,6 +122,16 @@ public class CommissionServiceTest {
         assertThat(updatedOperations).hasSize(1);
         assertThat(updatedOperations.getFirst().getStatus()).isSameAs(completedStatus);
         verifyNoInteractions(percentageCommissionStrategy);
+    }
+
+    @Test
+    void processCommissions_ShouldDoNothing_whenNoPaidOperations() {
+        when(operationStorage.findByStatus(OperationStatus.PAID)).thenReturn(List.of());
+        commissionService.processCommissions();
+        verify(operationStorage).findByStatus(OperationStatus.PAID);
+        verifyNoInteractions(commissionStorage);
+        verify(operationStorage, never()).findOperationStatus(any());
+        verify(operationStorage, never()).saveAll(any());
     }
 
     @Test
@@ -168,9 +168,10 @@ public class CommissionServiceTest {
     }
 
     private OperationEntity createOperationWithPercentageCommission() {
-        var commissionType = CommissionTypeEntity.builder()
-                .code(CommissionType.PERCENTAGE)
-                .build();
+        var commissionType = new CommissionTypeEntity(
+                1L,
+                CommissionType.PERCENTAGE,
+                "Percentage");
 
         var merchant = MerchantEntity.builder()
                 .commissionType(commissionType)
@@ -184,9 +185,10 @@ public class CommissionServiceTest {
     }
 
     private OperationEntity createOperationWithFixedCommission() {
-        var commissionType = CommissionTypeEntity.builder()
-                .code(CommissionType.FIXED)
-                .build();
+        var commissionType = new CommissionTypeEntity(
+                1L,
+                CommissionType.FIXED,
+                "Fixed");
 
         var merchant = MerchantEntity.builder()
                 .commissionType(commissionType)
