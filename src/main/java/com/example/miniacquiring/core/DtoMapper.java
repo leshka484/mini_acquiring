@@ -12,12 +12,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface DtoMapper {
 
-    @Mapping(target = "commissionType", source = "commissionType.type")
-    @Mapping(target = "status", source = "status.status")
+    @Mapping(target = "commissionType", source = "commissionType.name")
+    @Mapping(target = "status", source = "status.name")
     GetMerchantResponse toResponse(MerchantEntity merchant);
 
     @Mapping(target = "merchant", source = "merchant.name")
-    @Mapping(target = "type", source = "type.type")
+    @Mapping(target = "type", source = "type.name")
     @Mapping(target = "status", source = "status.name")
     GetOperationResponse toResponse(OperationEntity entity);
 

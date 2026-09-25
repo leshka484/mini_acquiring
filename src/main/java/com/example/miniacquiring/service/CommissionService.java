@@ -1,8 +1,9 @@
 package com.example.miniacquiring.service;
 
-import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetCommissionResponse;
+import com.example.miniacquiring.core.enums.CommissionType;
+import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.commisstionStrategy.FixedCommissionStrategy;
@@ -35,22 +36,23 @@ public class CommissionService {
     @Scheduled(cron = "${commission.scheduler.cron}")
     public void processCommissions() {
         log.info("Processing commissions");
-        var paidOperations = operationStorage.findPaid();
+        var paidOperations = operationStorage.findByStatus(OperationStatus.PAID);
         if (paidOperations.isEmpty()) {
             log.info("No paid operations found. Nothing to process.");
             return;
         }
-        processPaidOperations(paidOperations);
+        createCommissions(paidOperations);
+        updateOperations(paidOperations);
     }
 
     public GetCommissionResponse getById(Long id) {
         try {
             log.info("Trying to find commission with id = {}", id);
-            return dtoMapper.toResponse(commissionStorage.getById(id));
+            var commission = commissionStorage.getById(id);
+            return dtoMapper.toResponse(commission);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
-
     }
 
     public void deleteById(List<Long> ids) {
@@ -58,10 +60,25 @@ public class CommissionService {
         commissionStorage.deleteById(ids);
     }
 
-    private void processPaidOperations(List<OperationEntity> paidOperations) {
+    private void createCommissions(List<OperationEntity> paidOperations) {
         var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
         commissionStorage.saveAll(commissions);
-        operationStorage.completeAllPaid();
+    }
+
+    private CommissionEntity getCommissionForOperation(OperationEntity operation) {
+        try {
+            var merchant = operation.getMerchant();
+            var type = merchant.getCommissionType().getCode();
+            var strategy = switch (type) {
+                case CommissionType.PERCENTAGE -> percentageCommissionStrategy;
+                case CommissionType.FIXED -> fixedCommissionStrategy;
+            };
+            BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
+            return createCommissionEntity(operation, totalCommission);
+        } catch (IllegalStateException exception) {
+            log.error(exception.getMessage());
+            throw exception;
+        }
     }
 
     private CommissionEntity createCommissionEntity(OperationEntity operation, BigDecimal totalCommission) {
@@ -73,20 +90,20 @@ public class CommissionService {
                 .build();
     }
 
-    private CommissionEntity getCommissionForOperation(OperationEntity operation) {
+    private void updateOperations(List<OperationEntity> paidOperations) {
+        var updatedOperations = updateOperationStatuses(paidOperations);
+        operationStorage.saveAll(updatedOperations);
+    }
+
+    private List<OperationEntity> updateOperationStatuses(List<OperationEntity> paidOperations) {
         try {
-            var merchant = operation.getMerchant();
-            var type = merchant.getCommissionType().getType();
-            var strategy = switch (type) {
-                case Const.PERCENTAGE_COMMISSION -> percentageCommissionStrategy;
-                case Const.FIXED_COMMISSION -> fixedCommissionStrategy;
-                default -> throw new IllegalStateException("No strategy for commission type" + type);
-            };
-            BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
-            return createCommissionEntity(operation, totalCommission);
-        } catch (IllegalStateException exception) {
-            log.error(exception.getMessage());
-            throw exception;
+            var completedStatus = operationStorage.findOperationStatus(OperationStatus.COMPLETED);
+            return paidOperations.stream()
+                    .map(operation ->
+                            operation.toBuilder().status(completedStatus).build())
+                    .toList();
+        } catch (EntityNotFoundException exception) {
+            throw new NotFoundException(exception.getMessage());
         }
     }
 

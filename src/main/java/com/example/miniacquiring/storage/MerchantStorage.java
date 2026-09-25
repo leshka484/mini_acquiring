@@ -1,8 +1,9 @@
 package com.example.miniacquiring.storage;
 
 import com.example.miniacquiring.core.dto.MerchantFilter;
+import com.example.miniacquiring.core.enums.MerchantStatus;
+import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
-import com.example.miniacquiring.core.exception.MerchantNotActiveException;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.repository.MerchantRepository;
 import com.example.miniacquiring.storage.repository.specification.MerchantSpecification;
@@ -32,9 +33,9 @@ public class MerchantStorage {
         );
     }
 
-    public void isActive(Long id) {
-        if (!merchantRepository.isActive(id)) {
-            throw new MerchantNotActiveException("Merchant with id = %d is not active".formatted(id));
+    public void isActive(Long id, MerchantStatus status) {
+        if (!merchantRepository.isActive(id, status)) {
+            throw new EntityNotActiveException("Merchant with id = %d is not active".formatted(id));
         }
     }
 

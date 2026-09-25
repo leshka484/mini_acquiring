@@ -19,4 +19,5 @@ public interface CommissionControllerDoc {
     @ApiResponse(responseCode = "204", description = "Commissions successfully deleted")
     @DeleteMapping
     public void deleteById(List<Long> ids);
+
 }
