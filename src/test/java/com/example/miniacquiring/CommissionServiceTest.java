@@ -160,13 +160,6 @@ public class CommissionServiceTest {
         verify(commissionStorage).getById(id);
     }
 
-    @Test
-    void deleteById_shouldCallStorage() {
-        var ids = List.of(1L, 2L, 3L);
-        commissionService.deleteById(ids);
-        verify(commissionStorage).deleteById(ids);
-    }
-
     private OperationEntity createOperationWithPercentageCommission() {
         var commissionType = new CommissionTypeEntity(
                 1L,

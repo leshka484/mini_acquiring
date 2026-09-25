@@ -2,11 +2,13 @@ package com.example.miniacquiring;
 
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.PayRequest;
 import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.enums.OperationType;
+import com.example.miniacquiring.core.exception.BadRequestException;
 import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
@@ -39,7 +41,6 @@ import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -107,10 +108,11 @@ public class OperationServiceTest {
         assertThatThrownBy(() -> operationService.create(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
+        verify(merchantStorage).isActive(request.merchantId(), MerchantStatus.ACTIVE);
         verify(operationTypeRepository).findById(request.typeId());
         verifyNoInteractions(operationStatusRepository);
-        verifyNoInteractions(merchantStorage);
         verifyNoInteractions(operationStorage);
+        verify(merchantStorage, never()).findById(request.merchantId());
     }
 
     @Test
@@ -125,9 +127,10 @@ public class OperationServiceTest {
         assertThatThrownBy(() -> operationService.create(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
+        verify(merchantStorage).isActive(request.merchantId(), MerchantStatus.ACTIVE);
         verify(operationTypeRepository).findById(request.typeId());
         verify(operationStatusRepository).findById(request.statusId());
-        verifyNoInteractions(merchantStorage);
+        verify(merchantStorage, never()).findById(request.merchantId());
         verifyNoInteractions(operationStorage);
     }
 
@@ -146,36 +149,27 @@ public class OperationServiceTest {
         assertThatThrownBy(() -> operationService.create(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
+        verify(merchantStorage).isActive(request.merchantId(), MerchantStatus.ACTIVE);
         verify(operationTypeRepository).findById(request.typeId());
         verify(operationStatusRepository).findById(request.statusId());
         verify(merchantStorage).findById(request.merchantId());
-        verify(merchantStorage, never()).isActive(anyLong(), any());
         verifyNoInteractions(operationStorage);
     }
 
     @Test
     void create_shouldThrowForbiddenException_whenMerchantIsNotActive() {
         var request = createUpsertRequest();
-        var type = createOperationTypeEntity();
-        var status = createOperationStatusEntity(OperationStatus.NEW);
-        var merchant = createMerchantEntity();
         var message = "Merchant with id = %d is not active"
                 .formatted(request.merchantId());
-        when(operationTypeRepository.findById(request.typeId()))
-                .thenReturn(Optional.of(type));
-        when(operationStatusRepository.findById(request.statusId()))
-                .thenReturn(Optional.of(status));
-        when(merchantStorage.findById(request.merchantId()))
-                .thenReturn(merchant);
         doThrow(new EntityNotActiveException(message))
                 .when(merchantStorage)
                 .isActive(request.merchantId(), MerchantStatus.ACTIVE);
         assertThatThrownBy(() -> operationService.create(request))
                 .isInstanceOf(ForbiddenException.class)
                 .hasMessage(message);
-        verify(merchantStorage).findById(request.merchantId());
         verify(merchantStorage)
                 .isActive(request.merchantId(), MerchantStatus.ACTIVE);
+        verify(merchantStorage, never()).findById(request.merchantId());
         verifyNoInteractions(operationStorage);
     }
 
@@ -229,13 +223,14 @@ public class OperationServiceTest {
 
     @Test
     void processPayment_shouldUpdateOperation_whenStatusIsNew() {
+        var request = createPayRequest();
         var operation = createOperationEntity(OperationStatus.NEW);
         var paidStatus = createOperationStatusEntity(OperationStatus.PAID);
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
         when(operationStatusRepository.findByCode(OperationStatus.PAID))
                 .thenReturn(Optional.of(paidStatus));
-        operationService.processPayment(operation.getId());
+        operationService.processPayment(request);
         verify(operationStorage).findById(operation.getId());
         verify(operationStatusRepository).findByCode(OperationStatus.PAID);
         verify(operationStorage).save(operationCaptor.capture());
@@ -246,23 +241,29 @@ public class OperationServiceTest {
     }
 
     @Test
-    void processPayment_shouldDoNothing_whenStatusIsNotNew() {
+    void processPayment_shouldThrowBadRequestException_whenStatusIsNotNew() {
+        var request = createPayRequest();
         var paidOperation = createOperationEntity(OperationStatus.PAID);
+        var message = "Operation with id = %d is not NEW"
+                .formatted(paidOperation.getId());
         when(operationStorage.findById(paidOperation.getId()))
                 .thenReturn(paidOperation);
-        operationService.processPayment(paidOperation.getId());
+        assertThatThrownBy(() -> operationService.processPayment(request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(message);
         verify(operationStorage).findById(paidOperation.getId());
-        verify(operationStorage, never()).save(any(OperationEntity.class));
         verifyNoInteractions(operationStatusRepository);
+        verify(operationStorage, never()).save(any(OperationEntity.class));
     }
 
     @Test
     void processPayment_shouldThrowNotFoundException_whenOperationNotFound() {
-        var id = 100L;
+        var request = createPayRequest();
+        var id = 1L;
         var message = "Operation with id = %d does not exist".formatted(id);
         when(operationStorage.findById(id))
                 .thenThrow(new EntityNotFoundException(message));
-        assertThatThrownBy(() -> operationService.processPayment(id))
+        assertThatThrownBy(() -> operationService.processPayment(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(operationStorage).findById(id);
@@ -272,7 +273,25 @@ public class OperationServiceTest {
     }
 
     @Test
+    void process_payment_shouldThrowBadRequestException_whenOperationSumInvalid() {
+        var operation = createOperationEntity(OperationStatus.NEW);
+        var invalidRequest = new PayRequest(1L, new BigDecimal("100.00"));
+        var message = "Payment has invalid sum = %s, must be sum = %s"
+                .formatted(invalidRequest.sum(), operation.getSum());
+        when(operationStorage.findById(operation.getId()))
+                .thenReturn(operation);
+        assertThatThrownBy(() -> operationService.processPayment(invalidRequest))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(message);
+        verify(operationStorage).findById(operation.getId());
+        verifyNoInteractions(operationStatusRepository);
+        verify(operationStorage, never())
+                .save(any(OperationEntity.class));
+    }
+
+    @Test
     void processPayment_shouldThrowNotFoundException_whenPaidStatusNotFound() {
+        var request = createPayRequest();
         var operation = createOperationEntity(OperationStatus.NEW);
         var message = "Operation status with code = PAID not found";
         when(operationStorage.findById(operation.getId()))
@@ -280,7 +299,7 @@ public class OperationServiceTest {
         when(operationStatusRepository.findByCode(OperationStatus.PAID))
                 .thenReturn(Optional.empty());
         assertThatThrownBy(
-                () -> operationService.processPayment(operation.getId()))
+                () -> operationService.processPayment(request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
         verify(operationStorage).findById(operation.getId());
@@ -290,13 +309,14 @@ public class OperationServiceTest {
 
     @Test
     void cancelOperation_shouldUpdateOperation_whenStatusIsNew() {
+        var id = 1L;
         var operation = createOperationEntity(OperationStatus.NEW);
         var failedStatus = createOperationStatusEntity(OperationStatus.FAILED);
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
         when(operationStatusRepository.findByCode(OperationStatus.FAILED))
                 .thenReturn(Optional.of(failedStatus));
-        operationService.cancelOperation(operation.getId());
+        operationService.cancelOperation(id);
         verify(operationStorage).findById(operation.getId());
         verify(operationStatusRepository).findByCode(OperationStatus.FAILED);
         verify(operationStorage).save(operationCaptor.capture());
@@ -304,6 +324,22 @@ public class OperationServiceTest {
         assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
         assertThat(updatedOperation.getStatus()).isSameAs(failedStatus);
         assertThat(updatedOperation.getProcessedAt()).isNotNull();
+    }
+
+    @Test
+    void cancelOperation_shouldThrowBadRequestException_whenOperationStatusIsInvalid() {
+        var operation = createOperationEntity(OperationStatus.PAID);
+        var message = "Operation with id = %d is not %s"
+                .formatted(operation.getId(), OperationStatus.NEW);
+        when(operationStorage.findById(operation.getId()))
+                .thenReturn(operation);
+        assertThatThrownBy(
+                () -> operationService.cancelOperation(operation.getId()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage(message);
+        verify(operationStorage).findById(operation.getId());
+        verifyNoInteractions(operationStatusRepository);
+        verify(operationStorage, never()).save(any(OperationEntity.class));
     }
 
     @Test
@@ -397,14 +433,7 @@ public class OperationServiceTest {
         verify(operationStatusRepository).findById(request.statusId());
         verify(operationStorage).findById(id);
         verify(operationStorage, never()).save(any());
-    }
-
-    @Test
-    void deleteById_shouldCallStorage() {
-        var ids = List.of(1L, 2L, 3L);
-        operationService.deleteById(ids);
-        verify(operationStorage).deleteById(ids);
-    }
+}
 
     private OperationEntity createOperationEntity(OperationStatus status) {
         return OperationEntity
@@ -477,6 +506,10 @@ public class OperationServiceTest {
                 1L,
                 null,
                 LocalDateTime.of(2026, 1, 1, 0, 0));
+    }
+
+    private PayRequest createPayRequest() {
+        return new PayRequest(1L, new BigDecimal("1000.00"));
     }
 
 }

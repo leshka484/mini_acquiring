@@ -21,10 +21,6 @@ public class CommissionStorage {
         );
     }
 
-    public void deleteById(List<Long> ids) {
-        commissionRepository.deleteAllById(ids);
-    }
-
     public Long countMerchantCommissions(Long merchantId) {
         return commissionRepository.countMerchantCommissions(merchantId);
     }
