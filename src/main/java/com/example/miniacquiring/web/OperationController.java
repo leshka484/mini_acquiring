@@ -3,6 +3,7 @@ package com.example.miniacquiring.web;
 import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.dto.DeleteOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
+import com.example.miniacquiring.core.dto.PayRequest;
 import com.example.miniacquiring.core.dto.UpsertOperationRequest;
 import com.example.miniacquiring.service.OperationService;
 import com.example.miniacquiring.web.doc.OperationControllerDoc;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,18 +34,8 @@ public class OperationController implements OperationControllerDoc {
         operationService.create(request);
     }
 
-    @PostMapping("/{id}/payment")
-    public void payment(Long id) {
-        operationService.processPayment(id);
-    }
-
-    @PostMapping("/{id}/cancellation")
-    public void cancellation(Long id) {
-        operationService.cancelOperation(id);
-    }
-
     @GetMapping("/{id}")
-    public GetOperationResponse getById(Long id) {
+    public GetOperationResponse getById(@PathVariable Long id) {
         return operationService.getById(id);
     }
 
@@ -55,13 +47,17 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @PutMapping("/{id}")
-    public void update(Long id, @Valid @RequestBody UpsertOperationRequest request) {
+    public void update(@PathVariable Long id, @Valid @RequestBody UpsertOperationRequest request) {
         operationService.update(id, request);
     }
 
-    @DeleteMapping
-    public void deleteById(@Valid @RequestBody DeleteOperationRequest request) {
-        operationService.deleteById(request.ids());
+    @PutMapping("/payment")
+    public void payment(@Valid @RequestBody PayRequest request) {
+        operationService.processPayment(request);
     }
 
+    @PutMapping("/{id}/cancellation")
+    public void cancellation(@PathVariable Long id) {
+        operationService.cancelOperation(id);
+    }
 }

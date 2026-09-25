@@ -55,11 +55,6 @@ public class CommissionService {
         }
     }
 
-    public void deleteById(List<Long> ids) {
-        log.info("Deleting commissions");
-        commissionStorage.deleteById(ids);
-    }
-
     private void createCommissions(List<OperationEntity> paidOperations) {
         var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
         commissionStorage.saveAll(commissions);

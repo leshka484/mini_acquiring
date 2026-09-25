@@ -35,10 +35,6 @@ public class OperationStorage {
         return operationRepository.findAll(pageable);
     }
 
-    public void deleteById(List<Long> ids) {
-        operationRepository.deleteAllById(ids);
-    }
-
     public Long countMerchantOperations(Long merchantId) {
         return operationRepository.countMerchantOperations(merchantId);
     }

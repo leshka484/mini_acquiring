@@ -3,11 +3,9 @@ package com.example.miniacquiring.storage.repository;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface CommissionRepository extends JpaRepository<CommissionEntity, Long> {
@@ -19,13 +17,6 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             """)
     @NonNull
     Optional<CommissionEntity> findById(@NonNull Long id);
-
-    @Modifying
-    @Query("""
-                DELETE FROM CommissionEntity ce
-                WHERE ce.id IN :ids
-            """)
-    void deleteAllById(List<Long> ids);
 
     @Query("""
                 SELECT COUNT(ce)
@@ -55,6 +46,6 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             WHERE ce.operation.merchant.id = :merchantId
             AND ce.processedAt BETWEEN :from AND :to
             """)
-    BigDecimal sumMerchantCommissionsBetween(Long id, LocalDateTime from, LocalDateTime to);
+    BigDecimal sumMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
 
 }

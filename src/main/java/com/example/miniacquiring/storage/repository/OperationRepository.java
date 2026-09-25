@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
 
@@ -32,13 +33,6 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
                 WHERE oe.status.code = :code
             """)
     List<OperationEntity> findByStatus(OperationStatus code);
-
-    @Modifying
-    @Query("""
-                DELETE FROM OperationEntity oe
-                WHERE oe.id IN :ids
-            """)
-    void deleteAllById(List<Long> ids);
 
     @Query("""
                 SELECT COUNT(oe)
