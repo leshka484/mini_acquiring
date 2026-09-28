@@ -51,9 +51,9 @@ public class ReportServiceTest {
         when(commissionStorage.countMerchantCommissions(merchantId))
                 .thenReturn(5L);
         when(operationStorage.sumMerchantOperations(merchantId))
-                .thenReturn(new BigDecimal("1000.00"));
+                .thenReturn(100000L);
         when(commissionStorage.sumMerchantCommissions(merchantId))
-                .thenReturn(new BigDecimal("50.00"));
+                .thenReturn(5000L);
         var result = reportService.getMerchantFullReport(merchantId);
         verify(merchantStorage).findById(merchantId);
         verify(operationStorage).countMerchantOperations(merchantId);
@@ -93,9 +93,9 @@ public class ReportServiceTest {
         when(commissionStorage.countMerchantCommissionsBetween(merchantId, request))
                 .thenReturn(10L);
         when(operationStorage.sumMerchantOperationsBetween(merchantId, request))
-                .thenReturn(new BigDecimal("700.00"));
+                .thenReturn(70000L);
         when(commissionStorage.sumMerchantCommissionsBetween(merchantId, request))
-                .thenReturn(new BigDecimal("35.00"));
+                .thenReturn(3500L);
         var result = reportService.getMerchantReportByTime(merchantId, request);
         verify(merchantStorage).findById(merchantId);
         verify(operationStorage)

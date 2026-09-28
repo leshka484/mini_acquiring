@@ -2,7 +2,7 @@ package com.example.miniacquiring.web.doc;
 
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.PayRequest;
-import com.example.miniacquiring.core.dto.UpsertOperationRequest;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -20,13 +20,13 @@ public interface OperationControllerDoc {
     @Operation(summary = "Create operation")
     @ApiResponse(responseCode = "200", description = "Operation created successfully")
     @PostMapping
-    void create(@Valid @RequestBody UpsertOperationRequest request);
+    void create(@Valid @RequestBody CreateOperationRequest request);
 
     @Operation(summary = "Get operation by id")
     @ApiResponse(responseCode = "200", description = "Operation found")
     @ApiResponse(responseCode = "404", description = "Operation not found")
     @GetMapping("/{id}")
-    GetOperationResponse getById(Long id);
+    GetOperationResponse getById(@PathVariable Long id);
 
     @Operation(summary = "Get all operations")
     @ApiResponse(responseCode = "200", description = "Operations found")

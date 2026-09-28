@@ -13,7 +13,7 @@ public record GetMerchantReportResponse(
         @JsonProperty("merchant_name")
         String merchantName,
 
-        @JsonProperty("operations_count")
+        @JsonProperty("completed_operations")
         Long operationsCount,
 
         @JsonProperty("sum_operations")

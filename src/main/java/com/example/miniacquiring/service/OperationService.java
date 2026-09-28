@@ -3,7 +3,7 @@ package com.example.miniacquiring.service;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.PayRequest;
-import com.example.miniacquiring.core.dto.UpsertOperationRequest;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.BadRequestException;
@@ -13,6 +13,7 @@ import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.EntityNotVerifiedException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
+import com.example.miniacquiring.service.utils.MoneyUtils;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
@@ -39,7 +40,7 @@ public class OperationService {
     private final MerchantStorage merchantStorage;
     private final DtoMapper dtoMapper;
 
-    public void create(UpsertOperationRequest request) {
+    public void create(CreateOperationRequest request) {
         try {
             log.info("Creating operation");
             merchantStorage.isActive(request.merchantId(), MerchantStatus.ACTIVE);
@@ -81,7 +82,7 @@ public class OperationService {
     public void cancelOperation(Long id) {
         try {
             var operation = operationStorage.findById(id);
-            changeOperationStatus(operation, OperationStatus.FAILED);
+            changeOperationStatus(operation, OperationStatus.CANCELLED);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         } catch (EntityInvalidStatus exception) {
@@ -89,16 +90,7 @@ public class OperationService {
         }
     }
 
-    public void update(Long id, UpsertOperationRequest request) {
-        try {
-            log.info("Updating operation with id = {}", id);
-            updateOperationEntity(id, request);
-        } catch (EntityNotFoundException exception) {
-            throw new NotFoundException(exception.getMessage());
-        }
-    }
-
-    private void createOperationEntity(UpsertOperationRequest request) {
+    private void createOperationEntity(CreateOperationRequest request) {
         var type = getOperationType(request.typeId());
         var status = getOperationStatus(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
@@ -106,25 +98,12 @@ public class OperationService {
                 .builder()
                 .merchant(merchant)
                 .status(status)
-                .sum(request.sum())
+                .sum(MoneyUtils.convert(request.sum()))
                 .type(type)
                 .parentId(request.parentId())
                 .createdAt(LocalDateTime.now())
                 .build();
         operationStorage.save(operation);
-    }
-
-    private void updateOperationEntity(Long id, UpsertOperationRequest request) {
-        var type = getOperationType(request.typeId());
-        var status = getOperationStatus(request.statusId());
-        var operation = getOperationEntityById(id);
-        var updated = operation.toBuilder()
-                .status(status)
-                .type(type)
-                .parentId(request.parentId())
-                .processedAt(request.processedAt())
-                .build();
-        operationStorage.save(updated);
     }
 
     private OperationTypeEntity getOperationType(Long id) {
@@ -143,9 +122,10 @@ public class OperationService {
     }
 
     private void verifySum(OperationEntity operation, PayRequest request) {
-        if (!Objects.equals(operation.getSum(), request.sum())) {
+        var convertedSum = MoneyUtils.convert(request.sum());
+        if (!Objects.equals(operation.getSum(), convertedSum)) {
             throw new EntityNotVerifiedException(
-                    "Payment has invalid sum = %s, must be sum = %s"
+                    "Payment has invalid sum = %s, sum must be = %s"
                             .formatted(request.sum(), operation.getSum()));
         }
     }

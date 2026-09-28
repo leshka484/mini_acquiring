@@ -1,9 +1,12 @@
 package com.example.miniacquiring.service.commisstionStrategy;
 
+import com.example.miniacquiring.core.enums.CommissionType;
 import java.math.BigDecimal;
 
 public interface CommissionStrategy {
 
-    BigDecimal calculate(BigDecimal operationSum, BigDecimal commissionValue);
+    CommissionType getCommissionType();
+
+    Long calculate(Long operationSum, BigDecimal commissionValue);
 
 }

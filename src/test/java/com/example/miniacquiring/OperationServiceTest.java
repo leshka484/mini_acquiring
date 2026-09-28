@@ -3,7 +3,7 @@ package com.example.miniacquiring;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.PayRequest;
-import com.example.miniacquiring.core.dto.UpsertOperationRequest;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
@@ -14,6 +14,8 @@ import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.OperationService;
+import com.example.miniacquiring.service.commisstionStrategy.CommissionStrategy;
+import com.example.miniacquiring.service.utils.MoneyUtils;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
@@ -27,6 +29,7 @@ import com.example.miniacquiring.storage.repository.OperationTypeRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +63,9 @@ public class OperationServiceTest {
     private OperationStatusRepository operationStatusRepository;
 
     @Mock
+    private Map<CommissionType, CommissionStrategy> commissionStrategies;
+
+    @Mock
     private MerchantStorage merchantStorage;
 
     @Mock
@@ -73,7 +79,7 @@ public class OperationServiceTest {
 
     @Test
     void create_shouldCreateNewOperation() {
-        var request = createUpsertRequest();
+        var request = createUpdateRequest();
         var operationType = createOperationTypeEntity();
         var operationStatus = createOperationStatusEntity(OperationStatus.NEW);
         var merchant = createMerchantEntity();
@@ -94,14 +100,14 @@ public class OperationServiceTest {
         assertThat(savedOperation.getMerchant()).isSameAs(merchant);
         assertThat(savedOperation.getStatus()).isSameAs(operationStatus);
         assertThat(savedOperation.getType()).isSameAs(operationType);
-        assertThat(savedOperation.getSum()).isEqualByComparingTo(request.sum());
+        assertThat(savedOperation.getSum()).isEqualByComparingTo(MoneyUtils.convert(request.sum()));
         assertThat(savedOperation.getParentId()).isEqualTo(request.parentId());
         assertThat(savedOperation.getCreatedAt()).isNotNull();
     }
 
     @Test
     void create_shouldThrowEntityNotFoundException_whenTypeNotFound() {
-        var request = createUpsertRequest();
+        var request = createUpdateRequest();
         var message = "Operation type with id = %d not found".formatted(request.typeId());
         when(operationTypeRepository.findById(request.typeId()))
                 .thenReturn(Optional.empty());
@@ -117,7 +123,7 @@ public class OperationServiceTest {
 
     @Test
     void create_shouldThrowNotFoundException_whenStatusNotFound() {
-        var request = createUpsertRequest();
+        var request = createUpdateRequest();
         var type = createOperationTypeEntity();
         var message = "Operation status with id = %d not found".formatted(request.statusId());
         when(operationTypeRepository.findById(request.typeId()))
@@ -136,7 +142,7 @@ public class OperationServiceTest {
 
     @Test
     void create_shouldThrowEntityNotFoundException_whenMerchantNotFound() {
-        var request = createUpsertRequest();
+        var request = createUpdateRequest();
         var type = createOperationTypeEntity();
         var status = createOperationStatusEntity(OperationStatus.NEW);
         var message = "Merchant with id = %d not found".formatted(request.merchantId());
@@ -158,7 +164,7 @@ public class OperationServiceTest {
 
     @Test
     void create_shouldThrowForbiddenException_whenMerchantIsNotActive() {
-        var request = createUpsertRequest();
+        var request = createUpdateRequest();
         var message = "Merchant with id = %d is not active"
                 .formatted(request.merchantId());
         doThrow(new EntityNotActiveException(message))
@@ -276,7 +282,7 @@ public class OperationServiceTest {
     void process_payment_shouldThrowBadRequestException_whenOperationSumInvalid() {
         var operation = createOperationEntity(OperationStatus.NEW);
         var invalidRequest = new PayRequest(1L, new BigDecimal("100.00"));
-        var message = "Payment has invalid sum = %s, must be sum = %s"
+        var message = "Payment has invalid sum = %s, sum must be = %s"
                 .formatted(invalidRequest.sum(), operation.getSum());
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
@@ -311,18 +317,18 @@ public class OperationServiceTest {
     void cancelOperation_shouldUpdateOperation_whenStatusIsNew() {
         var id = 1L;
         var operation = createOperationEntity(OperationStatus.NEW);
-        var failedStatus = createOperationStatusEntity(OperationStatus.FAILED);
+        var cancelledStatus = createOperationStatusEntity(OperationStatus.CANCELLED);
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
-        when(operationStatusRepository.findByCode(OperationStatus.FAILED))
-                .thenReturn(Optional.of(failedStatus));
+        when(operationStatusRepository.findByCode(OperationStatus.CANCELLED))
+                .thenReturn(Optional.of(cancelledStatus));
         operationService.cancelOperation(id);
         verify(operationStorage).findById(operation.getId());
-        verify(operationStatusRepository).findByCode(OperationStatus.FAILED);
+        verify(operationStatusRepository).findByCode(OperationStatus.CANCELLED);
         verify(operationStorage).save(operationCaptor.capture());
         var updatedOperation = operationCaptor.getValue();
         assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
-        assertThat(updatedOperation.getStatus()).isSameAs(failedStatus);
+        assertThat(updatedOperation.getStatus()).isSameAs(cancelledStatus);
         assertThat(updatedOperation.getProcessedAt()).isNotNull();
     }
 
@@ -342,106 +348,13 @@ public class OperationServiceTest {
         verify(operationStorage, never()).save(any(OperationEntity.class));
     }
 
-    @Test
-    void update_shouldUpdateOperation() {
-        var operation = createOperationEntity(OperationStatus.NEW);
-        var id = operation.getId();
-        var updateRequest = new UpsertOperationRequest(
-                1L,
-                1L,
-                new BigDecimal("2000.00"),
-                1L,
-                null,
-                LocalDateTime.of(2026, 2, 2, 0, 0));
-        var newType = new OperationTypeEntity(
-                2L,
-                OperationType.RETURN,
-                "Return");
-        var newStatus = new OperationStatusEntity(
-                2L,
-                OperationStatus.PAID,
-                "Paid");
-
-        when(operationTypeRepository.findById(updateRequest.typeId()))
-                .thenReturn(Optional.of(newType));
-        when(operationStatusRepository.findById(updateRequest.statusId()))
-                .thenReturn(Optional.of(newStatus));
-        when(operationStorage.findById(id)).thenReturn(operation);
-        operationService.update(id, updateRequest);
-        verify(operationStorage).save(operationCaptor.capture());
-        var updatedOperation = operationCaptor.getValue();
-        verify(operationStorage).findById(id);
-        verify(operationTypeRepository).findById(updateRequest.typeId());
-        verify(operationStatusRepository).findById(updateRequest.statusId());
-        assertThat(updatedOperation.getId()).isEqualTo(operation.getId());
-        assertThat(updatedOperation.getStatus()).isSameAs(newStatus);
-        assertThat(updatedOperation.getType()).isSameAs(newType);
-        assertThat(updatedOperation.getParentId()).isEqualTo(updateRequest.parentId());
-        assertThat(updatedOperation.getProcessedAt()).isEqualTo(updateRequest.processedAt());
-    }
-
-    @Test
-    void update_shouldThrowEntityNotFoundException_whenTypeNotFound() {
-        var id = 1L;
-        var request = createUpsertRequest();
-        var message = "Operation type with id = %d not found".formatted(request.typeId());
-        when(operationTypeRepository.findById(request.typeId()))
-                .thenReturn(Optional.empty());
-        assertThatThrownBy(() -> operationService.update(id, request))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(message);
-        verify(operationTypeRepository).findById(request.typeId());
-        verifyNoInteractions(operationStatusRepository);
-        verifyNoInteractions(operationStorage);
-    }
-
-    @Test
-    void update_shouldThrowNotFoundException_whenStatusNotFound() {
-        var id = 1L;
-        var request = createUpsertRequest();
-        var type = createOperationTypeEntity();
-        var message = "Operation status with id = %d not found".formatted(request.statusId());
-        when(operationTypeRepository.findById(request.typeId()))
-                .thenReturn(Optional.of(type));
-        when(operationStatusRepository.findById(request.statusId()))
-                .thenReturn(Optional.empty());
-        assertThatThrownBy(() -> operationService.update(id, request))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(message);
-        verify(operationTypeRepository).findById(request.typeId());
-        verify(operationStatusRepository).findById(request.statusId());
-        verifyNoInteractions(operationStorage);
-    }
-
-    @Test
-    void update_shouldThrowNotFoundException_whenOperationNotFound() {
-        var id = 100L;
-        var request = createUpsertRequest();
-        var message = "Operation with id = %d not found".formatted(id);
-        var type = createOperationTypeEntity();
-        var status = createOperationStatusEntity(OperationStatus.NEW);
-        when(operationTypeRepository.findById(request.typeId()))
-                .thenReturn(Optional.of(type));
-        when(operationStatusRepository.findById(request.statusId()))
-                .thenReturn(Optional.of(status));
-        when(operationStorage.findById(id))
-                .thenThrow(new EntityNotFoundException(message));
-        assertThatThrownBy(() -> operationService.update(id, request))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessage(message);
-        verify(operationTypeRepository).findById(request.typeId());
-        verify(operationStatusRepository).findById(request.statusId());
-        verify(operationStorage).findById(id);
-        verify(operationStorage, never()).save(any());
-}
-
     private OperationEntity createOperationEntity(OperationStatus status) {
         return OperationEntity
                 .builder()
                 .id(1L)
                 .merchant(createMerchantEntity())
                 .status(createOperationStatusEntity(status))
-                .sum(new BigDecimal("1000.00"))
+                .sum(100000L)
                 .type(createOperationTypeEntity())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -498,8 +411,8 @@ public class OperationServiceTest {
                 LocalDateTime.of(2026, 1, 1, 0, 0));
     }
 
-    private UpsertOperationRequest createUpsertRequest() {
-        return new UpsertOperationRequest(
+    private CreateOperationRequest createUpdateRequest() {
+        return new CreateOperationRequest(
                 1L,
                 1L,
                 new BigDecimal("1000.00"),

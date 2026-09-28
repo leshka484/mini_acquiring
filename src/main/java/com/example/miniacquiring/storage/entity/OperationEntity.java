@@ -37,7 +37,7 @@ public class OperationEntity {
     private OperationStatusEntity status;
 
     @Column(name = "sum", nullable = false)
-    private BigDecimal sum;
+    private Long sum;
 
     @ManyToOne
     @JoinColumn(name = "operation_type_id", nullable = false)

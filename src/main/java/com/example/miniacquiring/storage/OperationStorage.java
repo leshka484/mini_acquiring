@@ -35,22 +35,22 @@ public class OperationStorage {
         return operationRepository.findAll(pageable);
     }
 
-    public Long countMerchantOperations(Long merchantId) {
-        return operationRepository.countMerchantOperations(merchantId);
+    public Long countMerchantOperations(Long merchantId, OperationStatus status) {
+        return operationRepository.countMerchantOperations(merchantId, status);
     }
 
-    public BigDecimal sumMerchantOperations(Long id) {
-        return operationRepository.sumMerchantOperations(id);
+    public Long sumMerchantOperations(Long id, OperationStatus status) {
+        return operationRepository.sumMerchantOperations(id, status);
     }
 
-    public Long countMerchantOperationsBetween(Long merchantId, CreateMerchantReportRequest request) {
+    public Long countMerchantOperationsBetween(Long merchantId, OperationStatus status, CreateMerchantReportRequest request) {
         return operationRepository
-                .countMerchantOperationsBetween(merchantId, request.startDateTime(), request.endDateTime());
+                .countMerchantOperationsBetween(merchantId, status, request.startDateTime(), request.endDateTime());
     }
 
-    public BigDecimal sumMerchantOperationsBetween(Long id, CreateMerchantReportRequest request) {
+    public Long sumMerchantOperationsBetween(Long id, OperationStatus status, CreateMerchantReportRequest request) {
         return operationRepository
-                .sumMerchantOperationsBetween(id, request.startDateTime(), request.endDateTime());
+                .sumMerchantOperationsBetween(id, status, request.startDateTime(), request.endDateTime());
     }
 
     public Long save(OperationEntity operation) {

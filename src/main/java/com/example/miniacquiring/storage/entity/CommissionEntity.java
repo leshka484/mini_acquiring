@@ -34,7 +34,7 @@ public class CommissionEntity {
     private OperationEntity operation;
 
     @Column(name = "total_commission", nullable = false)
-    private BigDecimal totalCommission;
+    private Long totalCommission;
 
     @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;

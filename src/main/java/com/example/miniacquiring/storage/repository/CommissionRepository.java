@@ -30,7 +30,7 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             FROM CommissionEntity ce
             WHERE ce.operation.merchant.id = :merchantId
             """)
-    BigDecimal sumMerchantCommissions(Long merchantId);
+    Long sumMerchantCommissions(Long merchantId);
 
     @Query("""
                 SELECT COUNT(ce)
@@ -46,6 +46,6 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             WHERE ce.operation.merchant.id = :merchantId
             AND ce.processedAt BETWEEN :from AND :to
             """)
-    BigDecimal sumMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+    Long sumMerchantCommissionsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
 
 }

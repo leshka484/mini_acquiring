@@ -21,4 +21,4 @@ spring:
 
 commission:
   scheduler:
-    cron: "0 0 * * * *"
+    cron: "0 * * * * *"

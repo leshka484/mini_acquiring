@@ -25,7 +25,7 @@ public class CommissionStorage {
         return commissionRepository.countMerchantCommissions(merchantId);
     }
 
-    public BigDecimal sumMerchantCommissions(Long merchantId) {
+    public Long sumMerchantCommissions(Long merchantId) {
         return commissionRepository.sumMerchantCommissions(merchantId);
     }
 
@@ -33,7 +33,7 @@ public class CommissionStorage {
         return commissionRepository.countMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
-    public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
+    public Long sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
         return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
