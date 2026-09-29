@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface OperationRepository extends JpaRepository<OperationEntity, Long> {
@@ -33,41 +32,38 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
             """)
     List<OperationEntity> findByStatus(OperationStatus code);
 
-    @Modifying
-    @Query("""
-                DELETE FROM OperationEntity oe
-                WHERE oe.id IN :ids
-            """)
-    void deleteAllById(List<Long> ids);
-
     @Query("""
                 SELECT COUNT(oe)
                 FROM OperationEntity oe
                 WHERE oe.merchant.id = :merchantId
+                AND oe.status.code = :status
             """)
-    Long countMerchantOperations(Long merchantId);
+    Long countMerchantOperations(Long merchantId, OperationStatus status);
 
     @Query("""
                 SELECT COALESCE(SUM(oe.sum), 0)
                 FROM OperationEntity oe
                 WHERE oe.merchant.id = :merchantId
+                AND oe.status.code = :status
             """)
-    BigDecimal sumMerchantOperations(Long merchantId);
+    Long sumMerchantOperations(Long merchantId, OperationStatus status);
 
     @Query("""
                 SELECT COUNT(oe)
                 FROM OperationEntity oe
                 WHERE oe.merchant.id = :merchantId
+                AND oe.status.code = :status
                 AND oe.createdAt BETWEEN :from AND :to
             """)
-    Long countMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+    Long countMerchantOperationsBetween(Long merchantId, OperationStatus status, LocalDateTime from, LocalDateTime to);
 
     @Query("""
                 SELECT COALESCE(SUM(oe.sum), 0)
                 FROM OperationEntity oe
                 WHERE oe.merchant.id = :merchantId
+                AND oe.status.code = :status
                 AND oe.createdAt BETWEEN :from AND :to
             """)
-    BigDecimal sumMerchantOperationsBetween(Long merchantId, LocalDateTime from, LocalDateTime to);
+    Long sumMerchantOperationsBetween(Long merchantId, OperationStatus status, LocalDateTime from, LocalDateTime to);
 
 }

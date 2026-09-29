@@ -7,6 +7,10 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -21,4 +25,4 @@ spring:
 
 commission:
   scheduler:
-    cron: "0 0 * * * *"
+    cron: "0 * * * * *"

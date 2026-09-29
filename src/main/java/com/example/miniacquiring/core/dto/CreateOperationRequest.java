@@ -8,7 +8,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record UpsertOperationRequest(
+public record CreateOperationRequest(
 
         @NotNull
         @JsonProperty("merchant_id")

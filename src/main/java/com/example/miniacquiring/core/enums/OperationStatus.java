@@ -4,6 +4,7 @@ public enum OperationStatus {
     NEW,
     PAID,
     COMPLETED,
-    FAILED;
+    CANCELLED,
+    FAILED
 
 }

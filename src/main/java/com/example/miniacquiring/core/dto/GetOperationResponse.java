@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 
 public record GetOperationResponse(
 
+        @JsonProperty("id")
+        Long id,
+
         @JsonProperty("merchant")
         String merchant,
 

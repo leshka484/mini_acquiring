@@ -2,8 +2,10 @@ package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.dto.GetMerchantReportResponse;
+import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
+import com.example.miniacquiring.service.utils.MoneyUtils;
 import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
@@ -42,35 +44,39 @@ public class ReportService {
 
     private GetMerchantReportResponse buildFullReport(Long id) {
         var merchant = merchantStorage.findById(id);
-        Long operationsCount = operationStorage.countMerchantOperations(id);
-        Long commissionsCount = commissionStorage.countMerchantCommissions(id);
-        BigDecimal sumOperations = operationStorage.sumMerchantOperations(id);
-        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissions(id);
+        var operationsCount = operationStorage
+                .countMerchantOperations(id, OperationStatus.COMPLETED);
+        var commissionsCount = commissionStorage.countMerchantCommissions(id);
+        var sumOperations = operationStorage
+                .sumMerchantOperations(id, OperationStatus.COMPLETED);
+        var sumCommissions = commissionStorage.sumMerchantCommissions(id);
         return GetMerchantReportResponse
                 .builder()
                 .merchantId(merchant.getId())
                 .merchantName(merchant.getName())
                 .operationsCount(operationsCount)
-                .sumOperations(sumOperations)
+                .sumOperations(MoneyUtils.convert(sumOperations))
                 .commissionsCount(commissionsCount)
-                .sumCommissions(sumCommissions)
+                .sumCommissions(MoneyUtils.convert(sumCommissions))
                 .build();
     }
 
     private GetMerchantReportResponse buildTimeReport(Long id, CreateMerchantReportRequest request) {
         var merchant = merchantStorage.findById(id);
-        Long operationsCount = operationStorage.countMerchantOperationsBetween(id, request);
-        Long commissionsCount = commissionStorage.countMerchantCommissionsBetween(id, request);
-        BigDecimal sumOperations = operationStorage.sumMerchantOperationsBetween(id, request);
-        BigDecimal sumCommissions = commissionStorage.sumMerchantCommissionsBetween(id, request);
+        var operationsCount = operationStorage
+                .countMerchantOperationsBetween(id, OperationStatus.COMPLETED, request);
+        var commissionsCount = commissionStorage.countMerchantCommissionsBetween(id, request);
+        var sumOperations = operationStorage
+                .sumMerchantOperationsBetween(id, OperationStatus.COMPLETED, request);
+        var sumCommissions = commissionStorage.sumMerchantCommissionsBetween(id, request);
         return GetMerchantReportResponse
                 .builder()
                 .merchantId(merchant.getId())
                 .merchantName(merchant.getName())
                 .operationsCount(operationsCount)
-                .sumOperations(sumOperations)
+                .sumOperations(MoneyUtils.convert(sumOperations))
                 .commissionsCount(commissionsCount)
-                .sumCommissions(sumCommissions)
+                .sumCommissions(MoneyUtils.convert(sumCommissions))
                 .build();
     }
 
