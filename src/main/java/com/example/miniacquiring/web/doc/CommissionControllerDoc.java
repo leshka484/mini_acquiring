@@ -12,12 +12,7 @@ public interface CommissionControllerDoc {
     @Operation(summary = "Get commission by id")
     @ApiResponse(responseCode = "200", description = "Commission found")
     @ApiResponse(responseCode = "404", description = "Commission not found")
-    @GetMapping
-    public GetCommissionResponse getById(Long id);
-
-    @Operation(summary = "Delete commissions by ids")
-    @ApiResponse(responseCode = "204", description = "Commissions successfully deleted")
-    @DeleteMapping
-    public void deleteById(List<Long> ids);
+    @GetMapping("/{id}")
+    GetCommissionResponse getById(Long id);
 
 }

@@ -8,6 +8,7 @@ import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.repository.MerchantRepository;
 import com.example.miniacquiring.storage.repository.specification.MerchantSpecification;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,12 @@ public class MerchantStorage {
         return merchantRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Merchant with id = %d does not exist".formatted(id))
         );
+    }
+
+    public Long findIdByPublicId(UUID publicId) {
+        var merchant = merchantRepository.findByPublicId(publicId).orElseThrow(
+                () -> new EntityNotFoundException("Merchant with public id = %s does not exist".formatted(publicId)));
+        return merchant.getId();
     }
 
     public void isActive(Long id, MerchantStatus status) {

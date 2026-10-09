@@ -3,6 +3,7 @@ package com.example.miniacquiring;
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.MerchantStatus;
+import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.ReportService;
@@ -46,18 +47,18 @@ public class ReportServiceTest {
         var merchant = createMerchantEntity();
         var merchantId = merchant.getId();
         when(merchantStorage.findById(merchantId)).thenReturn(merchant);
-        when(operationStorage.countMerchantOperations(merchantId))
+        when(operationStorage.countMerchantOperations(merchantId, OperationStatus.COMPLETED))
                 .thenReturn(10L);
         when(commissionStorage.countMerchantCommissions(merchantId))
                 .thenReturn(5L);
-        when(operationStorage.sumMerchantOperations(merchantId))
-                .thenReturn(new BigDecimal("1000.00"));
+        when(operationStorage.sumMerchantOperations(merchantId, OperationStatus.COMPLETED))
+                .thenReturn(100000L);
         when(commissionStorage.sumMerchantCommissions(merchantId))
-                .thenReturn(new BigDecimal("50.00"));
+                .thenReturn(5000L);
         var result = reportService.getMerchantFullReport(merchantId);
         verify(merchantStorage).findById(merchantId);
-        verify(operationStorage).countMerchantOperations(merchantId);
-        verify(operationStorage).sumMerchantOperations(merchantId);
+        verify(operationStorage).countMerchantOperations(merchantId, OperationStatus.COMPLETED);
+        verify(operationStorage).sumMerchantOperations(merchantId, OperationStatus.COMPLETED);
         verify(commissionStorage).countMerchantCommissions(merchantId);
         verify(commissionStorage).sumMerchantCommissions(merchantId);
         assertThat(result.merchantId()).isEqualTo(merchantId);
@@ -88,20 +89,20 @@ public class ReportServiceTest {
         var merchantId = merchant.getId();
         var request = createMerchantReportRequest();
         when(merchantStorage.findById(merchantId)).thenReturn(merchant);
-        when(operationStorage.countMerchantOperationsBetween(merchantId, request))
+        when(operationStorage.countMerchantOperationsBetween(merchantId, OperationStatus.COMPLETED, request))
                 .thenReturn(10L);
         when(commissionStorage.countMerchantCommissionsBetween(merchantId, request))
                 .thenReturn(10L);
-        when(operationStorage.sumMerchantOperationsBetween(merchantId, request))
-                .thenReturn(new BigDecimal("700.00"));
+        when(operationStorage.sumMerchantOperationsBetween(merchantId, OperationStatus.COMPLETED, request))
+                .thenReturn(70000L);
         when(commissionStorage.sumMerchantCommissionsBetween(merchantId, request))
-                .thenReturn(new BigDecimal("35.00"));
+                .thenReturn(3500L);
         var result = reportService.getMerchantReportByTime(merchantId, request);
         verify(merchantStorage).findById(merchantId);
         verify(operationStorage)
-                .countMerchantOperationsBetween(merchantId, request);
+                .countMerchantOperationsBetween(merchantId, OperationStatus.COMPLETED, request);
         verify(operationStorage)
-                .sumMerchantOperationsBetween(merchantId, request);
+                .sumMerchantOperationsBetween(merchantId, OperationStatus.COMPLETED, request);
         verify(commissionStorage)
                 .countMerchantCommissionsBetween(merchantId, request);
         verify(commissionStorage)

@@ -7,6 +7,7 @@ import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.CommissionService;
+import com.example.miniacquiring.service.commisstionStrategy.CommissionStrategy;
 import com.example.miniacquiring.service.commisstionStrategy.FixedCommissionStrategy;
 import com.example.miniacquiring.service.commisstionStrategy.PercentageCommissionStrategy;
 import com.example.miniacquiring.storage.CommissionStorage;
@@ -19,6 +20,7 @@ import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +55,9 @@ public class CommissionServiceTest {
     @Mock
     private FixedCommissionStrategy fixedCommissionStrategy;
 
+    @Mock
+    private Map<CommissionType, CommissionStrategy> commissionStrategies;
+
     @InjectMocks
     private CommissionService commissionService;
 
@@ -68,13 +73,16 @@ public class CommissionServiceTest {
         var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED);
         when(operationStorage.findByStatus(OperationStatus.PAID))
                 .thenReturn(List.of(operation));
+        when(commissionStrategies.get(CommissionType.PERCENTAGE))
+                .thenReturn(percentageCommissionStrategy);
         when(percentageCommissionStrategy.calculate(
                 operation.getSum(),
                 operation.getMerchant().getCommissionValue()))
-                .thenReturn(new BigDecimal("25.00"));
+                .thenReturn(2500L);
         when(operationStorage.findOperationStatus(OperationStatus.COMPLETED))
                 .thenReturn(completedStatus);
         commissionService.processCommissions();
+        verify(commissionStrategies).get(CommissionType.PERCENTAGE);
         verify(percentageCommissionStrategy).calculate(
                 operation.getSum(),
                 operation.getMerchant().getCommissionValue());
@@ -83,14 +91,18 @@ public class CommissionServiceTest {
         assertThat(savedCommissions).hasSize(1);
         var commission = savedCommissions.getFirst();
         assertThat(commission.getOperation()).isSameAs(operation);
-        assertThat(commission.getTotalCommission()).isEqualByComparingTo("25.00");
+        assertThat(commission.getTotalCommission())
+                .isEqualByComparingTo(2500L);
         assertThat(commission.getProcessedAt()).isNotNull();
-        verify(operationStorage).findOperationStatus(OperationStatus.COMPLETED);
-        verify(operationStorage).saveAll(operationsCaptor.capture());
+        verify(operationStorage)
+                .findOperationStatus(OperationStatus.COMPLETED);
+        verify(operationStorage)
+                .saveAll(operationsCaptor.capture());
         var updatedOperations = operationsCaptor.getValue();
         assertThat(updatedOperations).hasSize(1);
         assertThat(updatedOperations.getFirst().getStatus())
                 .isSameAs(completedStatus);
+
         verifyNoInteractions(fixedCommissionStrategy);
     }
 
@@ -98,14 +110,18 @@ public class CommissionServiceTest {
     void processCommissions_shouldCalculateWithFixedStrategy() {
         var operation = createOperationWithFixedCommission();
         var completedStatus = createOperationStatusEntity(OperationStatus.COMPLETED);
-        when(operationStorage.findByStatus(OperationStatus.PAID)).thenReturn(List.of(operation));
+        when(operationStorage.findByStatus(OperationStatus.PAID))
+                .thenReturn(List.of(operation));
+        when(commissionStrategies.get(CommissionType.FIXED))
+                .thenReturn(fixedCommissionStrategy);
         when(fixedCommissionStrategy.calculate(
                 operation.getSum(),
                 operation.getMerchant().getCommissionValue()))
-                .thenReturn(new BigDecimal("30.00"));
+                .thenReturn(3000L);
         when(operationStorage.findOperationStatus(OperationStatus.COMPLETED))
                 .thenReturn(completedStatus);
         commissionService.processCommissions();
+        verify(commissionStrategies).get(CommissionType.FIXED);
         verify(fixedCommissionStrategy).calculate(
                 operation.getSum(),
                 operation.getMerchant().getCommissionValue());
@@ -114,13 +130,17 @@ public class CommissionServiceTest {
         assertThat(savedCommissions).hasSize(1);
         var commission = savedCommissions.getFirst();
         assertThat(commission.getOperation()).isSameAs(operation);
-        assertThat(commission.getTotalCommission()).isEqualByComparingTo("30.00");
+        assertThat(commission.getTotalCommission())
+                .isEqualByComparingTo(3000L);
         assertThat(commission.getProcessedAt()).isNotNull();
-        verify(operationStorage).findOperationStatus(OperationStatus.COMPLETED);
-        verify(operationStorage).saveAll(operationsCaptor.capture());
+        verify(operationStorage)
+                .findOperationStatus(OperationStatus.COMPLETED);
+        verify(operationStorage)
+                .saveAll(operationsCaptor.capture());
         var updatedOperations = operationsCaptor.getValue();
         assertThat(updatedOperations).hasSize(1);
-        assertThat(updatedOperations.getFirst().getStatus()).isSameAs(completedStatus);
+        assertThat(updatedOperations.getFirst().getStatus())
+                .isSameAs(completedStatus);
         verifyNoInteractions(percentageCommissionStrategy);
     }
 
@@ -160,13 +180,6 @@ public class CommissionServiceTest {
         verify(commissionStorage).getById(id);
     }
 
-    @Test
-    void deleteById_shouldCallStorage() {
-        var ids = List.of(1L, 2L, 3L);
-        commissionService.deleteById(ids);
-        verify(commissionStorage).deleteById(ids);
-    }
-
     private OperationEntity createOperationWithPercentageCommission() {
         var commissionType = new CommissionTypeEntity(
                 1L,
@@ -179,7 +192,7 @@ public class CommissionServiceTest {
                 .build();
 
         return OperationEntity.builder()
-                .sum(new BigDecimal("1000.00"))
+                .sum(100000L)
                 .merchant(merchant)
                 .build();
     }
@@ -196,7 +209,7 @@ public class CommissionServiceTest {
                 .build();
 
         return OperationEntity.builder()
-                .sum(new BigDecimal("1000.00"))
+                .sum(100000L)
                 .merchant(merchant)
                 .build();
     }
@@ -208,7 +221,7 @@ public class CommissionServiceTest {
                 .builder()
                 .id(id)
                 .operation(operation)
-                .totalCommission(new BigDecimal("25.00"))
+                .totalCommission(2500L)
                 .processedAt(LocalDateTime.of(2026, 1, 1, 0, 0))
                 .build();
     }

@@ -9,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +33,7 @@ public class CommissionEntity {
     private OperationEntity operation;
 
     @Column(name = "total_commission", nullable = false)
-    private BigDecimal totalCommission;
+    private Long totalCommission;
 
     @Column(name = "processed_at", nullable = false)
     private LocalDateTime processedAt;

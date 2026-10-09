@@ -3,8 +3,15 @@ package com.example.miniacquiring.core.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record GetOperationResponse(
+
+        @JsonProperty("id")
+        Long id,
+
+        @JsonProperty("public_id")
+        UUID publicId,
 
         @JsonProperty("merchant")
         String merchant,

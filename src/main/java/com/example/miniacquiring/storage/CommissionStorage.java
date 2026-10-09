@@ -4,7 +4,6 @@ import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.repository.CommissionRepository;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,15 +20,11 @@ public class CommissionStorage {
         );
     }
 
-    public void deleteById(List<Long> ids) {
-        commissionRepository.deleteAllById(ids);
-    }
-
     public Long countMerchantCommissions(Long merchantId) {
         return commissionRepository.countMerchantCommissions(merchantId);
     }
 
-    public BigDecimal sumMerchantCommissions(Long merchantId) {
+    public Long sumMerchantCommissions(Long merchantId) {
         return commissionRepository.sumMerchantCommissions(merchantId);
     }
 
@@ -37,7 +32,7 @@ public class CommissionStorage {
         return commissionRepository.countMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 
-    public BigDecimal sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
+    public Long sumMerchantCommissionsBetween(Long merchantId, CreateMerchantReportRequest request) {
         return commissionRepository.sumMerchantCommissionsBetween(merchantId, request.startDateTime(), request.endDateTime());
     }
 

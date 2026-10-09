@@ -9,12 +9,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 @Builder(toBuilder = true)
 @Getter
@@ -28,6 +30,10 @@ public class OperationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Generated(event = EventType.INSERT)
+    @Column(name = "public_id", nullable = false, unique = true, insertable = false, updatable = false)
+    private UUID publicId;
+
     @ManyToOne
     @JoinColumn(name = "merchant_id", nullable = false)
     private MerchantEntity merchant;
@@ -37,7 +43,7 @@ public class OperationEntity {
     private OperationStatusEntity status;
 
     @Column(name = "sum", nullable = false)
-    private BigDecimal sum;
+    private Long sum;
 
     @ManyToOne
     @JoinColumn(name = "operation_type_id", nullable = false)

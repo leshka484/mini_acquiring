@@ -6,16 +6,15 @@ import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
-import com.example.miniacquiring.service.commisstionStrategy.FixedCommissionStrategy;
-import com.example.miniacquiring.service.commisstionStrategy.PercentageCommissionStrategy;
+import com.example.miniacquiring.service.commisstionStrategy.CommissionStrategy;
 import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import jakarta.transaction.Transactional;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,8 +28,7 @@ public class CommissionService {
     private final CommissionStorage commissionStorage;
     private final OperationStorage operationStorage;
     private final DtoMapper dtoMapper;
-    private final PercentageCommissionStrategy percentageCommissionStrategy;
-    private final FixedCommissionStrategy fixedCommissionStrategy;
+    private final Map<CommissionType, CommissionStrategy> commissionStrategies;
 
     @Transactional
     @Scheduled(cron = "${commission.scheduler.cron}")
@@ -55,11 +53,6 @@ public class CommissionService {
         }
     }
 
-    public void deleteById(List<Long> ids) {
-        log.info("Deleting commissions");
-        commissionStorage.deleteById(ids);
-    }
-
     private void createCommissions(List<OperationEntity> paidOperations) {
         var commissions = paidOperations.stream().map(this::getCommissionForOperation).toList();
         commissionStorage.saveAll(commissions);
@@ -69,11 +62,8 @@ public class CommissionService {
         try {
             var merchant = operation.getMerchant();
             var type = merchant.getCommissionType().getCode();
-            var strategy = switch (type) {
-                case CommissionType.PERCENTAGE -> percentageCommissionStrategy;
-                case CommissionType.FIXED -> fixedCommissionStrategy;
-            };
-            BigDecimal totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
+            var strategy = commissionStrategies.get(type);
+            var totalCommission = strategy.calculate(operation.getSum(), merchant.getCommissionValue());
             return createCommissionEntity(operation, totalCommission);
         } catch (IllegalStateException exception) {
             log.error(exception.getMessage());
@@ -81,7 +71,7 @@ public class CommissionService {
         }
     }
 
-    private CommissionEntity createCommissionEntity(OperationEntity operation, BigDecimal totalCommission) {
+    private CommissionEntity createCommissionEntity(OperationEntity operation, Long totalCommission) {
         return CommissionEntity
                 .builder()
                 .operation(operation)
