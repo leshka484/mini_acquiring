@@ -4,7 +4,7 @@ import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.core.dto.GetMerchantResponse;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.GetReferenceEntityResponse;
-import com.example.miniacquiring.service.utils.MoneyUtils;
+import com.example.miniacquiring.core.utils.MoneyUtils;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;

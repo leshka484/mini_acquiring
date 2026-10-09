@@ -7,8 +7,8 @@ import com.example.miniacquiring.storage.entity.OperationEntity;
 import com.example.miniacquiring.storage.entity.OperationStatusEntity;
 import com.example.miniacquiring.storage.repository.OperationRepository;
 import com.example.miniacquiring.storage.repository.OperationStatusRepository;
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +33,12 @@ public class OperationStorage {
 
     public Page<OperationEntity> findAll(Pageable pageable) {
         return operationRepository.findAll(pageable);
+    }
+
+    public Long findIdByPublicId(UUID publicId) {
+        var operation = operationRepository.findByPublicId(publicId).orElseThrow(
+                () -> new EntityNotFoundException("Operation with public id = %s does not exist".formatted(publicId)));
+        return operation.getId();
     }
 
     public Long countMerchantOperations(Long merchantId, OperationStatus status) {

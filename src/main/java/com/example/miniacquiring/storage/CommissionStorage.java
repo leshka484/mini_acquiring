@@ -4,7 +4,6 @@ import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.CommissionEntity;
 import com.example.miniacquiring.storage.repository.CommissionRepository;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

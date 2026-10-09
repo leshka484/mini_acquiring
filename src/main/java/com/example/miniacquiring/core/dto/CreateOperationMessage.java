@@ -1,18 +1,19 @@
 package com.example.miniacquiring.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
+import java.util.UUID;
 
-public record PayRequest(
-
-        @NotNull
-        @JsonProperty("operation_id")
-        Long operationId,
+public record CreateOperationMessage(
 
         @NotNull
+        @JsonProperty("public_merchant_id")
+        UUID publicMerchantId,
+
+        @NotNull
+        @Min(1)
         @JsonProperty("sum")
         Long sum) {
 
 }
-

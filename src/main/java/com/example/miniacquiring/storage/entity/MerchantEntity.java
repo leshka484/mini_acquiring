@@ -10,10 +10,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 
 @Builder(toBuilder = true)
 @Getter
@@ -27,6 +30,10 @@ public class MerchantEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
+    @Generated(event = EventType.INSERT)
+    @Column(name = "public_id", nullable = false, unique = true, insertable = false, updatable = false)
+    private UUID publicId;
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;

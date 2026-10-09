@@ -44,12 +44,12 @@ public class OperationController implements OperationControllerDoc {
         return operationService.getAll(pageable);
     }
 
-    @PutMapping("/payment")
+    @PostMapping("/payment")
     public void payment(@Valid @RequestBody PayRequest request) {
         operationService.processPayment(request);
     }
 
-    @PutMapping("/{id}/cancellation")
+    @PostMapping("/{id}/cancellation")
     public void cancellation(@PathVariable Long id) {
         operationService.cancelOperation(id);
     }

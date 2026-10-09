@@ -1,4 +1,4 @@
-package com.example.miniacquiring.service.utils;
+package com.example.miniacquiring.core.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

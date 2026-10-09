@@ -1,7 +1,7 @@
 package com.example.miniacquiring.service.commisstionStrategy;
 
 import com.example.miniacquiring.core.enums.CommissionType;
-import com.example.miniacquiring.service.utils.MoneyUtils;
+import com.example.miniacquiring.core.utils.MoneyUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.springframework.stereotype.Component;

@@ -1,10 +1,12 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.core.enums.OperationStatus;
+import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.entity.OperationEntity;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,13 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
                 WHERE oe.status.code = :code
             """)
     List<OperationEntity> findByStatus(OperationStatus code);
+
+    @Query("""
+            SELECT oe
+            FROM OperationEntity oe
+            WHERE oe.publicId = :publicId
+            """)
+    Optional<OperationEntity> findByPublicId(UUID publicId);
 
     @Query("""
                 SELECT COUNT(oe)

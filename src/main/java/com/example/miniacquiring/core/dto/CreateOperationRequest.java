@@ -5,7 +5,6 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CreateOperationRequest(
@@ -20,9 +19,9 @@ public record CreateOperationRequest(
         Long statusId,
 
         @NotNull
-        @DecimalMin("0.01")
+        @Min(1)
         @JsonProperty("sum")
-        BigDecimal sum,
+        Long sum,
 
         @NotNull
         @Min(0)

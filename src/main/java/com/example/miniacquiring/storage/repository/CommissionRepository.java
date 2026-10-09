@@ -1,7 +1,6 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.CommissionEntity;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
