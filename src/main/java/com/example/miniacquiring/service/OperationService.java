@@ -1,9 +1,9 @@
 package com.example.miniacquiring.service;
 
 import com.example.miniacquiring.core.DtoMapper;
+import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
 import com.example.miniacquiring.core.dto.PayRequest;
-import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.enums.OperationType;
@@ -14,7 +14,6 @@ import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.EntityNotVerifiedException;
 import com.example.miniacquiring.core.exception.ForbiddenException;
 import com.example.miniacquiring.core.exception.NotFoundException;
-import com.example.miniacquiring.core.utils.MoneyUtils;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
@@ -74,7 +73,7 @@ public class OperationService {
         try {
             var operation = operationStorage.findById(request.operationId());
             verifySum(operation, request);
-            changeOperationStatus(operation, OperationStatus.PAID);
+            payOperation(operation);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         } catch (EntityNotVerifiedException | EntityInvalidStatus exception) {
@@ -82,16 +81,17 @@ public class OperationService {
         }
     }
 
-    public void cancelOperation(Long id) {
+    public void processCancel(Long id) {
         try {
             var operation = operationStorage.findById(id);
-            changeOperationStatus(operation, OperationStatus.CANCELLED);
+            cancelOperation(operation);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         } catch (EntityInvalidStatus exception) {
             throw new BadRequestException(exception.getMessage());
         }
     }
+
 
     public OperationStatusEntity getOperationStatus(OperationStatus status) {
         return operationStatusRepository.findByCode(status).orElseThrow(
@@ -142,13 +142,22 @@ public class OperationService {
         }
     }
 
-    private void changeOperationStatus(OperationEntity operation, OperationStatus status) {
-        if (Objects.equals(operation.getStatus().getCode(), OperationStatus.NEW)) {
-            processOperation(operation, status);
-        } else {
-            throw new EntityInvalidStatus("Operation with id = %d is not NEW"
+    private void cancelOperation(OperationEntity operation) {
+        var operationStatusCode = operation.getStatus().getCode();
+        if (Objects.equals(operationStatusCode, OperationStatus.CANCELLED)) {
+            throw new EntityInvalidStatus("Operation with id = %d has already been cancelled"
                     .formatted(operation.getId()));
         }
+        processOperation(operation, OperationStatus.CANCELLED);
+    }
+
+    private void payOperation(OperationEntity operation) {
+        var operationStatusCode = operation.getStatus().getCode();
+        if (!Objects.equals(operationStatusCode, OperationStatus.NEW)) {
+            throw new EntityInvalidStatus("Operation with id = %d is not new"
+                    .formatted(operation.getId()));
+        }
+        processOperation(operation, OperationStatus.PAID);
     }
 
     private void processOperation(OperationEntity operation, OperationStatus status) {

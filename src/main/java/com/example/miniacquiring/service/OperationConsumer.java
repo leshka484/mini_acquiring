@@ -54,7 +54,7 @@ public class OperationConsumer {
         var publicOperationId = message.publicOperationId();
         log.info("Received CancelOperationMessage, operation public id = {}", publicOperationId);
         var operationId = operationService.getIdByPublicId(publicOperationId);
-        operationService.cancelOperation(operationId);
+        operationService.processCancel(operationId);
         log.info("Operation with public id = {} cancelled", publicOperationId);
     }
 

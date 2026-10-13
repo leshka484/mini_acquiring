@@ -320,7 +320,7 @@ public class OperationServiceTest {
                 .thenReturn(operation);
         when(operationStatusRepository.findByCode(OperationStatus.CANCELLED))
                 .thenReturn(Optional.of(cancelledStatus));
-        operationService.cancelOperation(id);
+        operationService.processCancel(id);
         verify(operationStorage).findById(operation.getId());
         verify(operationStatusRepository).findByCode(OperationStatus.CANCELLED);
         verify(operationStorage).save(operationCaptor.capture());
@@ -332,13 +332,13 @@ public class OperationServiceTest {
 
     @Test
     void cancelOperation_shouldThrowBadRequestException_whenOperationStatusIsInvalid() {
-        var operation = createOperationEntity(OperationStatus.PAID);
-        var message = "Operation with id = %d is not %s"
-                .formatted(operation.getId(), OperationStatus.NEW);
+        var operation = createOperationEntity(OperationStatus.CANCELLED);
+        var message = "Operation with id = %d has already been cancelled"
+                .formatted(operation.getId());
         when(operationStorage.findById(operation.getId()))
                 .thenReturn(operation);
         assertThatThrownBy(
-                () -> operationService.cancelOperation(operation.getId()))
+                () -> operationService.processCancel(operation.getId()))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage(message);
         verify(operationStorage).findById(operation.getId());

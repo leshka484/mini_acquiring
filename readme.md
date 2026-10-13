@@ -1,11 +1,9 @@
-1. docker exec -it mini-acquiring-db psql -U postgres -d postgres
-    
-2. CREATE ROLE ma_admin
-   WITH LOGIN
-   PASSWORD 'ma_admin'
-   NOSUPERUSER
-   NOCREATEDB
-   NOCREATEROLE
-   NOREPLICATION;
+# Инициализация базы данных
 
-3. ALTER DATABASE mini_acquiring OWNER TO ma_admin;
+Убедитесь, что контейнер с БД запущен.
+
+Для создания роли владельца базы данных и назначения ему прав владельца БД выполните команду из корневой директории проекта:
+
+```bash
+docker exec -i mini-acquiring-db psql -U postgres -d postgres < ./src/main/resources/sql/create_db_owner_role.sql
+```

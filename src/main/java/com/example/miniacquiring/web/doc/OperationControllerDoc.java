@@ -37,12 +37,14 @@ public interface OperationControllerDoc {
     @Operation(summary = "Operation payment")
     @ApiResponse(responseCode = "200", description = "Operation paid")
     @ApiResponse(responseCode = "404", description = "Operation not found")
+    @ApiResponse(responseCode = "400", description = "Operation is not new")
     @PutMapping("/payment")
     void payment(@Valid @RequestBody PayRequest request);
 
     @Operation(summary = "Operation cancellation")
     @ApiResponse(responseCode = "200", description = "Operation cancelled")
     @ApiResponse(responseCode = "404", description = "Operation not found")
+    @ApiResponse(responseCode = "400", description = "Operation must be not cancelled")
     @PutMapping("/{id}/cancellation")
     void cancellation(@PathVariable Long id);
 

@@ -1,3 +1,6 @@
+server:
+port: 8080
+
 spring:
   application:
     name: mini-acquiring
@@ -48,5 +51,5 @@ commission:
 logging:
   level:
     org.hibernate: WARN
-    org.apache.kafka.clients.producer: WARN
-    org.springframework.kafka: WARN
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO

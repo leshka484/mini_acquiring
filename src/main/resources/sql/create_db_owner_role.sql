@@ -1,0 +1,8 @@
+CREATE ROLE ma_admin
+    WITH LOGIN
+    PASSWORD 'ma_admin'
+    NOSUPERUSER
+    NOCREATEDB
+    NOCREATEROLE
+    NOREPLICATION;
+ALTER DATABASE mini_acquiring OWNER TO ma_admin;
