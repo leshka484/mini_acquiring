@@ -248,7 +248,7 @@ public class OperationServiceTest {
     void processPayment_shouldThrowBadRequestException_whenStatusIsNotNew() {
         var request = createPayRequest();
         var paidOperation = createOperationEntity(OperationStatus.PAID);
-        var message = "Operation with id = %d is not NEW"
+        var message = "Operation with id = %d is not new"
                 .formatted(paidOperation.getId());
         when(operationStorage.findById(paidOperation.getId()))
                 .thenReturn(paidOperation);
