@@ -4,6 +4,7 @@ import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.GetCommissionResponse;
 import com.example.miniacquiring.core.enums.CommissionType;
 import com.example.miniacquiring.core.enums.OperationStatus;
+import com.example.miniacquiring.core.enums.OperationType;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.CommissionService;
@@ -28,6 +29,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -150,7 +153,7 @@ public class CommissionServiceTest {
         commissionService.processCommissions();
         verify(operationStorage).findByStatus(OperationStatus.PAID);
         verifyNoInteractions(commissionStorage);
-        verify(operationStorage, never()).findOperationStatus(any());
+        verify(operationStorage, never()).findOperationStatus(any(OperationStatus.class));
         verify(operationStorage, never()).saveAll(any());
     }
 
@@ -158,12 +161,12 @@ public class CommissionServiceTest {
     void getById_shouldReturnCommissionResponse() {
         var commission = createCommissionEntity();
         var commissionResponse = createCommissionResponse();
-        when(commissionStorage.getById(commission.getId()))
+        when(commissionStorage.findById(commission.getId()))
                 .thenReturn(commission);
         when(dtoMapper.toResponse(commission)).thenReturn(commissionResponse);
         var actualResponse = commissionService.getById(commission.getId());
         assertThat(actualResponse).isSameAs(commissionResponse);
-        verify(commissionStorage).getById(commission.getId());
+        verify(commissionStorage).findById(commission.getId());
         verify(dtoMapper).toResponse(commission);
     }
 
@@ -171,13 +174,36 @@ public class CommissionServiceTest {
     void getById_shouldThrowException_whenNoCommissionWithThisId() {
         var id = 100L;
         var message = "Commission with id = %d not found".formatted(id);
-        when(commissionStorage.getById(id))
+        when(commissionStorage.findById(id))
                 .thenThrow(new EntityNotFoundException(message));
         assertThatThrownBy(
                 () -> commissionService.getById(id))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(commissionStorage).getById(id);
+        verify(commissionStorage).findById(id);
+    }
+
+    @Test
+    void getAll_shouldReturnCommissionsPage() {
+        var commission1 = createCommissionEntity();
+        var commission2 = createCommissionEntity();
+        var response1 = createCommissionResponse();
+        var response2 = createCommissionResponse();
+        var pageable = PageRequest.of(0, 20);
+        var commissionPage = new PageImpl<>(
+                List.of(commission1, commission2),
+                pageable,
+                2
+        );
+        when(commissionStorage.findAll(pageable)).thenReturn(commissionPage);
+        when(dtoMapper.toResponse(commission1)).thenReturn(response1);
+        when(dtoMapper.toResponse(commission2)).thenReturn(response2);
+        var actualPage = commissionService.getAll(pageable);
+        verify(commissionStorage).findAll(pageable);
+        verify(dtoMapper).toResponse(commission1);
+        verify(dtoMapper).toResponse(commission2);
+        assertThat(actualPage.getContent()).containsExactly(response1, response2);
+        assertThat(actualPage.getTotalElements()).isEqualTo(2);
     }
 
     private OperationEntity createOperationWithPercentageCommission() {

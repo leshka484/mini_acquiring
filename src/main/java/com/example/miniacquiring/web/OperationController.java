@@ -2,7 +2,7 @@ package com.example.miniacquiring.web;
 
 import com.example.miniacquiring.core.Const;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
-import com.example.miniacquiring.core.dto.PayRequest;
+import com.example.miniacquiring.core.dto.ProcessOperationRequest;
 import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.service.OperationService;
 import com.example.miniacquiring.web.doc.OperationControllerDoc;
@@ -44,13 +44,13 @@ public class OperationController implements OperationControllerDoc {
     }
 
     @PostMapping("/payment")
-    public void payment(@Valid @RequestBody PayRequest request) {
+    public void payment(@Valid @RequestBody ProcessOperationRequest request) {
         operationService.processPayment(request);
     }
 
-    @PostMapping("/{id}/cancellation")
-    public void cancellation(@PathVariable Long id) {
-        operationService.processCancel(id);
+    @PostMapping("/cancellation")
+    public void cancellation(@Valid @RequestBody ProcessOperationRequest request) {
+        operationService.processCancel(request);
     }
 
 }

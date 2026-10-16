@@ -1,9 +1,12 @@
 package com.example.miniacquiring.storage.repository;
 
 import com.example.miniacquiring.storage.entity.CommissionEntity;
+import com.example.miniacquiring.storage.entity.OperationEntity;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -16,6 +19,13 @@ public interface CommissionRepository extends JpaRepository<CommissionEntity, Lo
             """)
     @NonNull
     Optional<CommissionEntity> findById(@NonNull Long id);
+
+    @NonNull
+    @Query("""
+            SELECT ce
+            FROM CommissionEntity ce
+            """)
+    Page<CommissionEntity> findAll(Pageable pageable);
 
     @Query("""
                 SELECT COUNT(ce)

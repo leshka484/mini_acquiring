@@ -1,7 +1,7 @@
 package com.example.miniacquiring.web.doc;
 
 import com.example.miniacquiring.core.dto.GetOperationResponse;
-import com.example.miniacquiring.core.dto.PayRequest;
+import com.example.miniacquiring.core.dto.ProcessOperationRequest;
 import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,8 +29,7 @@ public interface OperationControllerDoc {
     GetOperationResponse getById(@PathVariable Long id);
 
     @Operation(summary = "Get all operations")
-    @ApiResponse(responseCode = "200", description = "Operations found")
-    @ApiResponse(responseCode = "404", description = "One or more operations not found")
+    @ApiResponse(responseCode = "200", description = "All operations received")
     @GetMapping
     Page<GetOperationResponse> getAll(@PageableDefault(size = 20) Pageable pageable);
 
@@ -39,13 +38,13 @@ public interface OperationControllerDoc {
     @ApiResponse(responseCode = "404", description = "Operation not found")
     @ApiResponse(responseCode = "400", description = "Operation is not new")
     @PutMapping("/payment")
-    void payment(@Valid @RequestBody PayRequest request);
+    void payment(@Valid @RequestBody ProcessOperationRequest request);
 
     @Operation(summary = "Operation cancellation")
-    @ApiResponse(responseCode = "200", description = "Operation cancelled")
+    @ApiResponse(responseCode = "200", description = "Operation rejected")
     @ApiResponse(responseCode = "404", description = "Operation not found")
-    @ApiResponse(responseCode = "400", description = "Operation must be not cancelled")
+    @ApiResponse(responseCode = "400", description = "Operation must be not rejected")
     @PutMapping("/{id}/cancellation")
-    void cancellation(@PathVariable Long id);
+    void cancellation(@Valid @RequestBody ProcessOperationRequest request);
 
 }

@@ -148,7 +148,7 @@ VALUES
     (
         SELECT id
         FROM status.operation_status
-        WHERE code = 'CANCELLED'
+        WHERE code = 'REJECTED'
     ),
     (
         SELECT id

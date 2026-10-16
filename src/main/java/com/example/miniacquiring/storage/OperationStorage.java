@@ -2,14 +2,18 @@ package com.example.miniacquiring.storage;
 
 import com.example.miniacquiring.core.dto.CreateMerchantReportRequest;
 import com.example.miniacquiring.core.enums.OperationStatus;
+import com.example.miniacquiring.core.enums.OperationType;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.OperationEntity;
 import com.example.miniacquiring.storage.entity.OperationStatusEntity;
+import com.example.miniacquiring.storage.entity.OperationTypeEntity;
 import com.example.miniacquiring.storage.repository.OperationRepository;
 import com.example.miniacquiring.storage.repository.OperationStatusRepository;
+import com.example.miniacquiring.storage.repository.OperationTypeRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -20,6 +24,7 @@ public class OperationStorage {
 
     private final OperationRepository operationRepository;
     private final OperationStatusRepository operationStatusRepository;
+    private final OperationTypeRepository operationTypeRepository;
 
     public OperationEntity findById(Long id) {
         return operationRepository.findById(id).orElseThrow(
@@ -68,10 +73,29 @@ public class OperationStorage {
         operationRepository.saveAll(commissions);
     }
 
+    @Cacheable(cacheNames = "operationStatuses", key = "#status")
     public OperationStatusEntity findOperationStatus(OperationStatus status) {
         return operationStatusRepository.findByCode(status).orElseThrow(
                 () -> new EntityNotFoundException("Operation status with code = %s not found".formatted(status))
         );
+    }
+
+    @Cacheable(cacheNames = "operationTypes", key = "#type")
+    public OperationTypeEntity findOperationType(OperationType type) {
+        return operationTypeRepository.findByCode(type).orElseThrow(
+                () -> new EntityNotFoundException("Operation type with code = %s not found".formatted(type)));
+    }
+
+    @Cacheable(cacheNames = "operationTypes", key = "#id")
+    public OperationTypeEntity findOperationType(Long id) {
+        return operationTypeRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Operation type with id = %d not found".formatted(id)));
+    }
+
+    @Cacheable(cacheNames = "operationStatuses", key = "#id")
+    public OperationStatusEntity findOperationStatus(Long id) {
+        return operationStatusRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Operation status with id = %d not found".formatted(id)));
     }
 
 }

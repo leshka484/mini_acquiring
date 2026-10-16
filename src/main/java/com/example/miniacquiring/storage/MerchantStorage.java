@@ -5,11 +5,14 @@ import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.exception.EntityNotActiveException;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
+import com.example.miniacquiring.storage.entity.MerchantStatusEntity;
 import com.example.miniacquiring.storage.repository.MerchantRepository;
+import com.example.miniacquiring.storage.repository.MerchantStatusRepository;
 import com.example.miniacquiring.storage.repository.specification.MerchantSpecification;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class MerchantStorage {
 
     private final MerchantRepository merchantRepository;
+    private final MerchantStatusRepository merchantStatusRepository;
 
     public void deleteById(List<Long> ids) {
         merchantRepository.deleteAllById(ids);
@@ -49,6 +53,13 @@ public class MerchantStorage {
     public Long save(MerchantEntity merchant) {
         merchantRepository.save(merchant);
         return merchant.getId();
+    }
+
+    @Cacheable(cacheNames = "merchantStatuses", key = "#id")
+    public MerchantStatusEntity findMerchantStatus(Long id) {
+        return merchantStatusRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Merchant status with id = %d not found".formatted(id))
+        );
     }
 
 }

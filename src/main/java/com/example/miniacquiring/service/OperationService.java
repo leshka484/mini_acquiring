@@ -3,7 +3,7 @@ package com.example.miniacquiring.service;
 import com.example.miniacquiring.core.DtoMapper;
 import com.example.miniacquiring.core.dto.CreateOperationRequest;
 import com.example.miniacquiring.core.dto.GetOperationResponse;
-import com.example.miniacquiring.core.dto.PayRequest;
+import com.example.miniacquiring.core.dto.ProcessOperationRequest;
 import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.enums.OperationStatus;
 import com.example.miniacquiring.core.enums.OperationType;
@@ -17,10 +17,6 @@ import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.OperationStorage;
 import com.example.miniacquiring.storage.entity.OperationEntity;
-import com.example.miniacquiring.storage.entity.OperationStatusEntity;
-import com.example.miniacquiring.storage.entity.OperationTypeEntity;
-import com.example.miniacquiring.storage.repository.OperationStatusRepository;
-import com.example.miniacquiring.storage.repository.OperationTypeRepository;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,9 +32,6 @@ import org.springframework.stereotype.Service;
 public class OperationService {
 
     private final OperationStorage operationStorage;
-    private final OperationTypeRepository operationTypeRepository;
-    private final OperationStatusRepository operationStatusRepository;
-    private final ReferenceDataService referenceDataService;
     private final MerchantStorage merchantStorage;
     private final DtoMapper dtoMapper;
 
@@ -69,7 +62,7 @@ public class OperationService {
         return operations.map(dtoMapper::toResponse);
     }
 
-    public void processPayment(PayRequest request) {
+    public void processPayment(ProcessOperationRequest request) {
         try {
             var operation = operationStorage.findById(request.operationId());
             verifySum(operation, request);
@@ -81,26 +74,16 @@ public class OperationService {
         }
     }
 
-    public void processCancel(Long id) {
+    public void processCancel(ProcessOperationRequest request) {
         try {
-            var operation = operationStorage.findById(id);
+            var operation = operationStorage.findById(request.operationId());
+            verifySum(operation, request);
             cancelOperation(operation);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
-        } catch (EntityInvalidStatus exception) {
+        } catch (EntityNotVerifiedException | EntityInvalidStatus exception) {
             throw new BadRequestException(exception.getMessage());
         }
-    }
-
-
-    public OperationStatusEntity getOperationStatus(OperationStatus status) {
-        return operationStatusRepository.findByCode(status).orElseThrow(
-                () -> new EntityNotFoundException("Operation status with code = %s not found".formatted(status.name())));
-    }
-
-    public OperationTypeEntity getOperationType(OperationType type) {
-        return operationTypeRepository.findByCode(type).orElseThrow(
-                () -> new EntityNotFoundException("Operation type with code = %s not found".formatted(type.name())));
     }
 
     public Long getIdByPublicId(UUID publicId) {
@@ -113,8 +96,8 @@ public class OperationService {
     }
 
     private OperationEntity createOperationEntity(CreateOperationRequest request) {
-        var type = referenceDataService.getOperationType(request.typeId());
-        var status = referenceDataService.getOperationStatus(request.statusId());
+        var type = operationStorage.findOperationType(request.typeId());
+        var status = operationStorage.findOperationStatus(request.statusId());
         var merchant = merchantStorage.findById(request.merchantId());
         var operation = OperationEntity
                 .builder()
@@ -134,24 +117,31 @@ public class OperationService {
         return operationStorage.findById(id);
     }
 
-    private void verifySum(OperationEntity operation, PayRequest request) {
+    private void verifySum(OperationEntity operation, ProcessOperationRequest request) {
         if (!Objects.equals(operation.getSum(), request.sum())) {
             throw new EntityNotVerifiedException(
-                    "Payment has invalid sum = %s, sum must be = %s"
+                    "Invalid sum: provided = %s, must be = %s"
                             .formatted(request.sum(), operation.getSum()));
         }
     }
 
     private void cancelOperation(OperationEntity operation) {
-        var operationStatusCode = operation.getStatus().getCode();
-        if (Objects.equals(operationStatusCode, OperationStatus.CANCELLED)) {
-            throw new EntityInvalidStatus("Operation with id = %d has already been cancelled"
-                    .formatted(operation.getId()));
+        if (isReturnOperation(operation)) {
+            throw new EntityInvalidStatus("Cannot cancel operation with RETURN type");
         }
-        processOperation(operation, OperationStatus.CANCELLED);
+        var operationStatusCode = operation.getStatus().getCode();
+        switch (operationStatusCode) {
+            case NEW -> processOperation(operation, OperationStatus.REJECTED);
+            case PAID, COMPLETED -> refundOperation(operation);
+            case REJECTED, REFUNDED, FAILED -> throw new EntityInvalidStatus(
+                    "Cannot cancel operation with %s status".formatted(operationStatusCode));
+        }
     }
 
     private void payOperation(OperationEntity operation) {
+        if (isReturnOperation(operation)) {
+            throw new EntityInvalidStatus("Cannot pay operation with RETURN type");
+        }
         var operationStatusCode = operation.getStatus().getCode();
         if (!Objects.equals(operationStatusCode, OperationStatus.NEW)) {
             throw new EntityInvalidStatus("Operation with id = %d is not new"
@@ -160,13 +150,34 @@ public class OperationService {
         processOperation(operation, OperationStatus.PAID);
     }
 
+    private boolean isReturnOperation(OperationEntity operation) {
+        return operation.getType().getCode() == OperationType.RETURN;
+    }
+
+    private void refundOperation(OperationEntity operation) {
+        processOperation(operation, OperationStatus.REFUNDED);
+        createRefundOperation(operation);
+    }
+
     private void processOperation(OperationEntity operation, OperationStatus status) {
-        var statusEntity = getOperationStatus(status);
+        var statusEntity = operationStorage.findOperationStatus(status);
         var updatedOperation = operation.toBuilder()
                 .status(statusEntity)
                 .processedAt(LocalDateTime.now())
                 .build();
         operationStorage.save(updatedOperation);
+    }
+
+    private void createRefundOperation(OperationEntity operation) {
+        var refundOperation = OperationEntity.builder()
+                .merchant(operation.getMerchant())
+                .status(operationStorage.findOperationStatus(OperationStatus.NEW))
+                .sum(operation.getSum())
+                .type(operationStorage.findOperationType(OperationType.RETURN))
+                .parentId(operation.getId())
+                .createdAt(LocalDateTime.now())
+                .build();
+        operationStorage.save(refundOperation);
     }
 
 }

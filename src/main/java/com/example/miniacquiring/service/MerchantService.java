@@ -6,6 +6,7 @@ import com.example.miniacquiring.core.dto.MerchantFilter;
 import com.example.miniacquiring.core.dto.UpsertMerchantRequest;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
+import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import java.util.List;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class MerchantService {
 
     private final MerchantStorage merchantStorage;
-    private final ReferenceDataService referenceDataService;
+    private final CommissionStorage commissionStorage;
     private final DtoMapper dtoMapper;
 
     public void create(UpsertMerchantRequest request) {
@@ -64,17 +65,13 @@ public class MerchantService {
     }
 
     public Long getIdByPublicId(UUID publicId) {
-        try {
             log.info("Getting merchant id by it's public id = {}", publicId);
             return merchantStorage.findIdByPublicId(publicId);
-        } catch (EntityNotFoundException exception) {
-            throw new NotFoundException(exception.getMessage());
-        }
     }
 
     private void updateMerchantEntity(Long id, UpsertMerchantRequest request) {
-        var type = referenceDataService.getCommissionType(request.commissionTypeId());
-        var status = referenceDataService.getMerchantStatus(request.statusId());
+        var type = commissionStorage.getCommissionType(request.commissionTypeId());
+        var status = merchantStorage.findMerchantStatus(request.statusId());
         var merchant = getMerchantEntityById(id);
         var updated = merchant.toBuilder()
                 .name(request.name())
@@ -86,8 +83,8 @@ public class MerchantService {
     }
 
     private void createMerchantEntity(UpsertMerchantRequest request) {
-        var type = referenceDataService.getCommissionType(request.commissionTypeId());
-        var status = referenceDataService.getMerchantStatus(request.statusId());
+        var type = commissionStorage.getCommissionType(request.commissionTypeId());
+        var status = merchantStorage.findMerchantStatus(request.statusId());
         var merchant = MerchantEntity
                 .builder()
                 .name(request.name())

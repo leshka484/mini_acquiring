@@ -17,9 +17,8 @@ spring:
       properties:
         spring.json.trusted.packages: com.example.miniacquiring.core.dto
         spring.json.type.mapping:
-          com.example.kafkaproducer.core.dto.PayOperationMessage:com.example.miniacquiring.core.dto.PayOperationMessage,
-          com.example.kafkaproducer.core.dto.CreateOperationMessage:com.example.miniacquiring.core.dto.CreateOperationMessage,
-          com.example.kafkaproducer.core.dto.CancelOperationMessage:com.example.miniacquiring.core.dto.CancelOperationMessage
+          com.example.kafkaproducer.core.dto.ProcessOperationMessage:com.example.miniacquiring.core.dto.ProcessOperationMessage,
+          com.example.kafkaproducer.core.dto.CreateOperationMessage:com.example.miniacquiring.core.dto.CreateOperationMessage
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -50,6 +49,6 @@ commission:
 
 logging:
   level:
-    org.hibernate: WARN
+    org.hibernate: OFF
+    org.springframework: WARN
     org.apache.kafka: WARN
-    org.springframework.kafka: INFO

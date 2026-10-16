@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -46,11 +48,17 @@ public class CommissionService {
     public GetCommissionResponse getById(Long id) {
         try {
             log.info("Trying to find commission with id = {}", id);
-            var commission = commissionStorage.getById(id);
+            var commission = commissionStorage.findById(id);
             return dtoMapper.toResponse(commission);
         } catch (EntityNotFoundException exception) {
             throw new NotFoundException(exception.getMessage());
         }
+    }
+
+    public Page<GetCommissionResponse> getAll(Pageable pageable) {
+        log.info("Getting all commissions");
+        var commissions = commissionStorage.findAll(pageable);
+        return commissions.map(dtoMapper::toResponse);
     }
 
     private void createCommissions(List<OperationEntity> paidOperations) {

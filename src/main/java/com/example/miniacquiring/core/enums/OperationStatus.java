@@ -4,7 +4,8 @@ public enum OperationStatus {
     NEW,
     PAID,
     COMPLETED,
-    CANCELLED,
+    REJECTED,
+    REFUNDED,
     FAILED
 
 }

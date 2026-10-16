@@ -9,16 +9,14 @@ import com.example.miniacquiring.core.enums.MerchantStatus;
 import com.example.miniacquiring.core.exception.EntityNotFoundException;
 import com.example.miniacquiring.core.exception.NotFoundException;
 import com.example.miniacquiring.service.MerchantService;
-import com.example.miniacquiring.service.ReferenceDataService;
+import com.example.miniacquiring.storage.CommissionStorage;
 import com.example.miniacquiring.storage.MerchantStorage;
 import com.example.miniacquiring.storage.entity.CommissionTypeEntity;
 import com.example.miniacquiring.storage.entity.MerchantEntity;
 import com.example.miniacquiring.storage.entity.MerchantStatusEntity;
-import com.example.miniacquiring.storage.repository.CommissionTypeRepository;
 import com.example.miniacquiring.storage.repository.MerchantStatusRepository;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,13 +43,10 @@ public class MerchantServiceTest {
     private MerchantStorage merchantStorage;
 
     @Mock
-    private CommissionTypeRepository commissionTypeRepository;
-
-    @Mock
     private MerchantStatusRepository merchantStatusRepository;
 
     @Mock
-    private ReferenceDataService referenceDataService;
+    private CommissionStorage commissionStorage;
 
     @Mock
     private DtoMapper dtoMapper;
@@ -67,13 +62,13 @@ public class MerchantServiceTest {
         var commissionType = createCommissionType();
         var merchantStatus = createMerchantStatus();
         var request = createUpsertRequest();
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenReturn(commissionType);
-        when(referenceDataService.getMerchantStatus(request.statusId()))
+        when(merchantStorage.findMerchantStatus(request.statusId()))
                 .thenReturn(merchantStatus);
         merchantService.create(request);
-        verify(referenceDataService).getMerchantStatus(request.statusId());
-        verify(referenceDataService).getCommissionType(request.commissionTypeId());
+        verify(merchantStorage).findMerchantStatus(request.statusId());
+        verify(commissionStorage).getCommissionType(request.commissionTypeId());
         verify(merchantStorage).save(merchantCaptor.capture());
         var savedMerchant = merchantCaptor.getValue();
         assertThat(savedMerchant.getName()).isEqualTo(request.name());
@@ -87,7 +82,7 @@ public class MerchantServiceTest {
     @Test
     void create_shouldThrowNotFoundException_whenTypeNotFound() {
         var request = createUpsertRequest();
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenThrow(new NotFoundException("Commission type with id = 1 not found"));
         assertThatThrownBy(() -> merchantService.create(request))
                 .isInstanceOf(NotFoundException.class)
@@ -101,9 +96,9 @@ public class MerchantServiceTest {
     void create_shouldThrowNotFoundException_whenStatusNotFound() {
         var commissionType = createCommissionType();
         var request = createUpsertRequest();
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenReturn(commissionType);
-        when(referenceDataService.getMerchantStatus(request.statusId()))
+        when(merchantStorage.findMerchantStatus(request.statusId()))
                 .thenThrow(new NotFoundException(
                         "Merchant status with id = 1 not found"));
         assertThatThrownBy(() -> merchantService.create(request))
@@ -175,13 +170,13 @@ public class MerchantServiceTest {
         var merchant = createMerchantEntity();
         var id = merchant.getId();
         when(merchantStorage.findById(id)).thenReturn(merchant);
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenReturn(commissionType);
-        when(referenceDataService.getMerchantStatus(request.statusId()))
+        when(merchantStorage.findMerchantStatus(request.statusId()))
                 .thenReturn(merchantStatus);
         merchantService.update(id, request);
-        verify(referenceDataService).getCommissionType(request.commissionTypeId());
-        verify(referenceDataService).getMerchantStatus(request.statusId());
+        verify(commissionStorage).getCommissionType(request.commissionTypeId());
+        verify(merchantStorage).findMerchantStatus(request.statusId());
         verify(merchantStorage).findById(id);
         verify(merchantStorage).save(merchantCaptor.capture());
         var updatedMerchant = merchantCaptor.getValue();
@@ -199,14 +194,14 @@ public class MerchantServiceTest {
         var request = createUpsertRequest();
         var message = "Commission type with id = %d not found"
                 .formatted(request.commissionTypeId());
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenThrow(new EntityNotFoundException(message));
         assertThatThrownBy(() -> merchantService.update(id, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(referenceDataService).getCommissionType(request.commissionTypeId());
+        verify(commissionStorage).getCommissionType(request.commissionTypeId());
         verifyNoInteractions(merchantStatusRepository);
-        verify(referenceDataService, never()).getMerchantStatus(any());
+        verify(merchantStorage, never()).findMerchantStatus(any());
         verify(merchantStorage, never()).save(any());
     }
 
@@ -217,15 +212,15 @@ public class MerchantServiceTest {
         var commissionType = createCommissionType();
         var message = "Merchant status with id = %d not found"
                 .formatted(request.statusId());
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenReturn(commissionType);
-        when(referenceDataService.getMerchantStatus(request.statusId()))
+        when(merchantStorage.findMerchantStatus(request.statusId()))
                 .thenThrow(new EntityNotFoundException(message));
         assertThatThrownBy(() -> merchantService.update(id, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(referenceDataService).getCommissionType(request.commissionTypeId());
-        verify(referenceDataService).getMerchantStatus(request.statusId());
+        verify(commissionStorage).getCommissionType(request.commissionTypeId());
+        verify(merchantStorage).findMerchantStatus(request.statusId());
         verify(merchantStorage, never()).findById(any());
         verify(merchantStorage, never()).save(any());
     }
@@ -237,17 +232,17 @@ public class MerchantServiceTest {
         var commissionType = createCommissionType();
         var merchantStatus = createMerchantStatus();
         var message = "Merchant with id = %d not found".formatted(id);
-        when(referenceDataService.getCommissionType(request.commissionTypeId()))
+        when(commissionStorage.getCommissionType(request.commissionTypeId()))
                 .thenReturn(commissionType);
-        when(referenceDataService.getMerchantStatus(request.statusId()))
+        when(merchantStorage.findMerchantStatus(request.statusId()))
                 .thenReturn(merchantStatus);
         when(merchantStorage.findById(id))
                 .thenThrow(new EntityNotFoundException(message));
         assertThatThrownBy(() -> merchantService.update(id, request))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(message);
-        verify(referenceDataService).getCommissionType(request.commissionTypeId());
-        verify(referenceDataService).getMerchantStatus(request.statusId());
+        verify(commissionStorage).getCommissionType(request.commissionTypeId());
+        verify(merchantStorage).findMerchantStatus(request.statusId());
         verify(merchantStorage).findById(id);
         verify(merchantStorage, never()).save(any());
     }

@@ -21,7 +21,7 @@ public interface OperationRepository extends JpaRepository<OperationEntity, Long
             SELECT oe
             FROM OperationEntity oe
             """)
-    Page<OperationEntity> findAll(@NonNull Pageable pageable);
+    Page<OperationEntity> findAll(Pageable pageable);
 
     @EntityGraph(attributePaths = {
             "merchant",
